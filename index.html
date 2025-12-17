@@ -4,9 +4,7 @@
   <meta charset="UTF-8" />
   <title>Super Kid Chore Quest</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- html2canvas for screenshotting the poster -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <!-- jsPDF for PDF generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     * {
@@ -101,26 +99,30 @@
     /* ---------- Poster (for PDF) ---------- */
     #posterWrapper {
       position: fixed;
-      left: -9999px;       /* off-screen but still renderable */
+      left: -9999px;
       top: 0;
-      width: 1200px;       /* nice wide layout for landscape PDF */
-      padding: 20px;
-      background: #fff9ed;
+      width: 1200px;
+      height: 100vh;
+      padding: 0;
+      background: linear-gradient(135deg, #ffeaa7, #ffd29d);
       z-index: -1;
-      visibility: hidden;  /* hidden normally, visible only for capture */
+      visibility: hidden;
     }
 
     #poster {
       width: 100%;
-      border-radius: 24px;
-      padding: 24px 28px 28px;
-      background: linear-gradient(135deg, #ffeaa7, #ffd1ff); /* yellow/pink gradient */
-      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      height: 100%;
+      border-radius: 0;
+      padding: 30px;
+      background: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
     }
 
     .poster-title {
       text-align: center;
-      font-size: 34px;
+      font-size: 38px;
       font-weight: 800;
       color: #ff9c00;
       margin: 0;
@@ -128,20 +130,24 @@
 
     .poster-subtitle {
       text-align: center;
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 700;
       color: #333;
       margin: 8px 0 18px 0;
     }
 
     .poster-board {
-      margin-top: 6px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     .poster-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 14px;
+      justify-content: center;
     }
 
     .poster-grid.bottom {
@@ -150,37 +156,47 @@
     }
 
     .day-card {
-      background: rgba(255,255,255,0.9);
       border-radius: 16px;
-      padding: 10px 12px;
+      padding: 12px 14px;
       border: 2px solid rgba(255, 179, 0, 0.9);
-      min-height: 105px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+      min-height: 110px;
+      text-align: center;
+      background: rgba(255,255,255,0.95);
+    }
+
+    .day-card.free {
+      background: linear-gradient(135deg, #fff4c3, #ffe07b);
+      border: 2px solid #ffcd3c;
+      color: #ff9500;
+      font-weight: bold;
+      font-size: 16px;
     }
 
     .day-name {
-      text-align: center;
       font-weight: 800;
       font-size: 16px;
-      margin-bottom: 6px;
       color: #444;
+      margin-bottom: 4px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
     .chore-list {
-      font-size: 13px;
+      font-size: 14px;
       color: #444;
-      padding-left: 18px;
+      list-style: none;
+      padding: 0;
       margin: 0;
+      text-align: left;
+      display: inline-block;
     }
 
     .chore-list li {
-      margin-bottom: 3px;
+      margin: 3px 0;
     }
 
     .poster-footer {
-      margin-top: 18px;
+      margin-top: 16px;
       text-align: center;
       font-size: 14px;
       font-style: italic;
@@ -224,12 +240,10 @@
       <button class="danger" onclick="clearSchedule()">Clear All</button>
     </div>
 
-    <p class="note">
-      Your schedule is saved automatically and generates a colorful PDF with emojis when saved!
-    </p>
+    <p class="note">Your schedule is saved automatically and generates a fun PDF when saved!</p>
   </div>
 
-  <!-- Hidden poster used ONLY for the PDF image -->
+  <!-- Hidden poster for PDF -->
   <div id="posterWrapper">
     <div id="poster">
       <h1 class="poster-title">🌟 SUPER KID CHORE QUEST 🌟</h1>
@@ -258,9 +272,8 @@
       "🧹 Crumb Crusher",
       "🧊 Fridge Ranger"
     ];
-    const scheduleBody = document.getElementById("scheduleBody");
 
-    // ---------- TABLE + LOCAL STORAGE ----------
+    const scheduleBody = document.getElementById("scheduleBody");
 
     function renderTable() {
       scheduleBody.innerHTML = "";
@@ -282,9 +295,7 @@
           cb.dataset.chore = chore;
           cb.dataset.day = day;
 
-          if (saved[chore] && saved[chore].includes(day)) {
-            cb.checked = true;
-          }
+          if (saved[chore] && saved[chore].includes(day)) cb.checked = true;
 
           cell.appendChild(cb);
           tr.appendChild(cell);
@@ -306,9 +317,7 @@
 
     function clearSchedule() {
       if (!confirm("Clear all chores and checkboxes?")) return;
-      localStorage.removeItem("chores");
-      localStorage.removeItem("schedule");
-      localStorage.removeItem("kidName");
+      localStorage.clear();
       renderTable();
       document.getElementById("kidName").value = "";
     }
@@ -330,8 +339,6 @@
       buildPosterAndGeneratePDF(kidName, schedule);
     }
 
-    // ---------- POSTER + PDF (image-only) ----------
-
     function buildPosterAndGeneratePDF(kidName, schedule) {
       const dayChores = {};
       DAYS.forEach(d => (dayChores[d] = []));
@@ -345,11 +352,8 @@
         });
       });
 
-      // Fill hero name + footer
-      document.getElementById("posterHeroName").textContent =
-        `${kidName}'s Weekly Chore Schedule`;
-      document.getElementById("posterFooter").textContent =
-        `Keep shining, ${kidName}! 🌈`;
+      document.getElementById("posterHeroName").textContent = `${kidName}'s Weekly Chore Schedule`;
+      document.getElementById("posterFooter").textContent = "";
 
       const topDays = ["Mon","Tue","Wed","Thu"];
       const bottomDays = ["Fri","Sat","Sun"];
@@ -367,67 +371,49 @@
         title.textContent = day;
         card.appendChild(title);
 
-        const ul = document.createElement("ul");
-        ul.className = "chore-list";
-
         const choresForDay = dayChores[day] || [];
+
         if (choresForDay.length === 0) {
-          const li = document.createElement("li");
-          li.textContent = "— No chores —";
-          ul.appendChild(li);
+          card.classList.add("free");
+          card.innerHTML = `<div class="day-name">${day}</div><div style="margin-top:25px;font-size:18px;">Free Day! 🎉</div>`;
         } else {
+          const ul = document.createElement("ul");
+          ul.className = "chore-list";
           choresForDay.forEach(ch => {
             const li = document.createElement("li");
-            li.textContent = ch; // emojis kept
+            li.textContent = ch;
             ul.appendChild(li);
           });
+          card.appendChild(ul);
         }
-
-        card.appendChild(ul);
         return card;
       }
 
       topDays.forEach(d => posterTopRow.appendChild(createDayCard(d)));
       bottomDays.forEach(d => posterBottomRow.appendChild(createDayCard(d)));
 
-      // let browser paint, then capture
       setTimeout(generatePDFfromPoster, 80);
     }
 
     async function generatePDFfromPoster() {
       const posterWrapper = document.getElementById("posterWrapper");
       const poster = document.getElementById("poster");
-
       posterWrapper.style.visibility = "visible";
 
-      const canvas = await html2canvas(poster, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: null
-      });
-
+      const canvas = await html2canvas(poster, { scale: 2, useCORS: true, backgroundColor: null });
       const imgData = canvas.toDataURL("image/png");
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF("landscape", "pt", "a4");
-
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
 
-      const imgWidth = pageWidth - 40;  // 20pt margin each side
-      const imgHeight = canvas.height * imgWidth / canvas.width;
-      const x = (pageWidth - imgWidth) / 2;
-      const y = (pageHeight - imgHeight) / 2;
-
-      pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
+      pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pageHeight);
       pdf.save("SuperKidSchedule.pdf");
-
       posterWrapper.style.visibility = "hidden";
     }
 
-    // ---------- INIT ----------
     renderTable();
-    document.getElementById("kidName").value =
-      localStorage.getItem("kidName") || "";
+    document.getElementById("kidName").value = localStorage.getItem("kidName") || "";
   </script>
 </body>
 </html>
