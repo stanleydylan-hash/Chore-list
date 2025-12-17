@@ -11,13 +11,15 @@
   <style>
     * {
       box-sizing: border-box;
-      font-family: "Comic Sans MS", "Poppins", sans-serif;
+      font-family: "Comic Sans MS", "Poppins", system-ui, sans-serif;
     }
+
     body {
       margin: 0;
       background: #fff9ed;
       padding: 20px;
     }
+
     .container {
       max-width: 1100px;
       margin: auto;
@@ -26,33 +28,40 @@
       border-radius: 20px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.15);
     }
+
     h1 {
       text-align: center;
       color: #ff9c00;
       font-size: 2.5rem;
       margin: 10px 0;
     }
+
     h2 {
       text-align: center;
       color: #444;
       margin-top: 0;
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
     }
+
     th, td {
       border: 1px solid #f2d36b;
       padding: 6px;
       text-align: center;
     }
+
     th {
       background: #ffec9f;
     }
+
     td.chore {
       background: #fffaf0;
       text-align: left;
     }
+
     button {
       border: none;
       border-radius: 20px;
@@ -61,22 +70,27 @@
       cursor: pointer;
       font-weight: 600;
     }
+
     .primary {
       background: #ffb200;
     }
+
     .secondary {
       background: #4a8dff;
       color: white;
     }
+
     .danger {
       background: #ff6b6b;
       color: white;
     }
+
     input {
       padding: 6px 8px;
       border: 1px solid #ccc;
       border-radius: 6px;
     }
+
     .note {
       font-size: 0.85rem;
       color: #666;
@@ -84,69 +98,89 @@
       margin-top: 10px;
     }
 
-    /* ----- Poster styles (for the screenshot) ----- */
+    /* ---------- Poster (for PDF) ---------- */
     #posterWrapper {
       position: fixed;
-      left: -9999px; /* keep it off-screen, but still renderable */
+      left: -9999px;       /* off-screen but still renderable */
       top: 0;
-      width: 1100px; /* nice wide layout for landscape PDF */
+      width: 1200px;       /* nice wide layout for landscape PDF */
       padding: 20px;
       background: #fff9ed;
       z-index: -1;
+      visibility: hidden;  /* hidden normally, visible only for capture */
     }
+
     #poster {
       width: 100%;
-      border-radius: 20px;
-      padding: 20px;
-      background: linear-gradient(135deg, #ffe8a3, #ffd0f7);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      border-radius: 24px;
+      padding: 24px 28px 28px;
+      background: linear-gradient(135deg, #ffeaa7, #ffd1ff); /* yellow/pink gradient */
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
     }
+
     .poster-title {
       text-align: center;
-      font-size: 32px;
-      font-weight: 700;
+      font-size: 34px;
+      font-weight: 800;
       color: #ff9c00;
       margin: 0;
     }
+
     .poster-subtitle {
       text-align: center;
       font-size: 24px;
-      font-weight: 600;
+      font-weight: 700;
       color: #333;
-      margin: 8px 0 20px 0;
+      margin: 8px 0 18px 0;
     }
+
+    .poster-board {
+      margin-top: 6px;
+    }
+
     .poster-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
+      gap: 14px;
     }
+
     .poster-grid.bottom {
-      margin-top: 12px;
+      margin-top: 14px;
       grid-template-columns: repeat(3, 1fr);
     }
+
     .day-card {
-      background: rgba(255,255,255,0.85);
-      border-radius: 14px;
+      background: rgba(255,255,255,0.9);
+      border-radius: 16px;
       padding: 10px 12px;
-      border: 2px solid rgba(255, 179, 0, 0.7);
+      border: 2px solid rgba(255, 179, 0, 0.9);
+      min-height: 105px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
     }
+
     .day-name {
       text-align: center;
-      font-weight: 700;
+      font-weight: 800;
       font-size: 16px;
       margin-bottom: 6px;
       color: #444;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
+
     .chore-list {
       font-size: 13px;
       color: #444;
-      padding-left: 16px;
+      padding-left: 18px;
+      margin: 0;
     }
+
     .chore-list li {
       margin-bottom: 3px;
     }
+
     .poster-footer {
-      margin-top: 16px;
+      margin-top: 18px;
       text-align: center;
       font-size: 14px;
       font-style: italic;
@@ -195,14 +229,16 @@
     </p>
   </div>
 
-  <!-- Hidden poster used for PDF (rendered off-screen) -->
+  <!-- Hidden poster used ONLY for the PDF image -->
   <div id="posterWrapper">
     <div id="poster">
       <h1 class="poster-title">🌟 SUPER KID CHORE QUEST 🌟</h1>
       <h2 class="poster-subtitle" id="posterHeroName"></h2>
 
-      <div class="poster-grid" id="posterTopRow"></div>
-      <div class="poster-grid bottom" id="posterBottomRow"></div>
+      <div class="poster-board">
+        <div class="poster-grid" id="posterTopRow"></div>
+        <div class="poster-grid bottom" id="posterBottomRow"></div>
+      </div>
 
       <div class="poster-footer" id="posterFooter"></div>
     </div>
@@ -223,6 +259,8 @@
       "🧊 Fridge Ranger"
     ];
     const scheduleBody = document.getElementById("scheduleBody");
+
+    // ---------- TABLE + LOCAL STORAGE ----------
 
     function renderTable() {
       scheduleBody.innerHTML = "";
@@ -268,7 +306,9 @@
 
     function clearSchedule() {
       if (!confirm("Clear all chores and checkboxes?")) return;
-      localStorage.clear();
+      localStorage.removeItem("chores");
+      localStorage.removeItem("schedule");
+      localStorage.removeItem("kidName");
       renderTable();
       document.getElementById("kidName").value = "";
     }
@@ -287,16 +327,14 @@
       localStorage.setItem("schedule", JSON.stringify(schedule));
       localStorage.setItem("kidName", kidName);
 
-      // Build the poster HTML and then turn it into a PDF
-      buildPoster(kidName, schedule).then(() => {
-        console.log("Poster built and PDF generated");
-      });
+      buildPosterAndGeneratePDF(kidName, schedule);
     }
 
-    // Build the HTML poster
-    async function buildPoster(kidName, schedule) {
+    // ---------- POSTER + PDF (image-only) ----------
+
+    function buildPosterAndGeneratePDF(kidName, schedule) {
       const dayChores = {};
-      DAYS.forEach(d => dayChores[d] = []);
+      DAYS.forEach(d => (dayChores[d] = []));
 
       Object.keys(schedule).forEach(chore => {
         const days = schedule[chore] || [];
@@ -307,7 +345,7 @@
         });
       });
 
-      // Fill in hero name and footer
+      // Fill hero name + footer
       document.getElementById("posterHeroName").textContent =
         `${kidName}'s Weekly Chore Schedule`;
       document.getElementById("posterFooter").textContent =
@@ -315,7 +353,6 @@
 
       const topDays = ["Mon","Tue","Wed","Thu"];
       const bottomDays = ["Fri","Sat","Sun"];
-
       const posterTopRow = document.getElementById("posterTopRow");
       const posterBottomRow = document.getElementById("posterBottomRow");
       posterTopRow.innerHTML = "";
@@ -341,7 +378,7 @@
         } else {
           choresForDay.forEach(ch => {
             const li = document.createElement("li");
-            li.textContent = ch; // keep emojis here
+            li.textContent = ch; // emojis kept
             ul.appendChild(li);
           });
         }
@@ -350,29 +387,23 @@
         return card;
       }
 
-      topDays.forEach(d => {
-        posterTopRow.appendChild(createDayCard(d));
-      });
-      bottomDays.forEach(d => {
-        posterBottomRow.appendChild(createDayCard(d));
-      });
+      topDays.forEach(d => posterTopRow.appendChild(createDayCard(d)));
+      bottomDays.forEach(d => posterBottomRow.appendChild(createDayCard(d)));
 
-      // Wait a tick to ensure DOM is updated
-      await new Promise(r => setTimeout(r, 50));
-
-      await generatePDFfromPoster();
+      // let browser paint, then capture
+      setTimeout(generatePDFfromPoster, 80);
     }
 
     async function generatePDFfromPoster() {
       const posterWrapper = document.getElementById("posterWrapper");
       const poster = document.getElementById("poster");
 
-      // html2canvas needs it visible (but it's off-screen already)
       posterWrapper.style.visibility = "visible";
 
       const canvas = await html2canvas(poster, {
-        scale: 2,         // higher resolution
-        useCORS: true
+        scale: 2,
+        useCORS: true,
+        backgroundColor: null
       });
 
       const imgData = canvas.toDataURL("image/png");
@@ -382,17 +413,18 @@
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
 
-      const imgWidth = pageWidth;
+      const imgWidth = pageWidth - 40;  // 20pt margin each side
       const imgHeight = canvas.height * imgWidth / canvas.width;
+      const x = (pageWidth - imgWidth) / 2;
       const y = (pageHeight - imgHeight) / 2;
 
-      pdf.addImage(imgData, "PNG", 0, y, imgWidth, imgHeight);
+      pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
       pdf.save("SuperKidSchedule.pdf");
 
       posterWrapper.style.visibility = "hidden";
     }
 
-    // Init
+    // ---------- INIT ----------
     renderTable();
     document.getElementById("kidName").value =
       localStorage.getItem("kidName") || "";
