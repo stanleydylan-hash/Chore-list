@@ -4,29 +4,90 @@
   <meta charset="UTF-8" />
   <title>Super Kid Chore Quest</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- jsPDF CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    *{box-sizing:border-box;font-family:"Comic Sans MS", "Poppins", sans-serif;}
-    body{margin:0;background:#fff9ed;padding:20px;}
-    .container{max-width:1100px;margin:auto;background:white;padding:25px;border-radius:20px;box-shadow:0 10px 25px rgba(0,0,0,0.15);}
-    h1{text-align:center;color:#ff9c00;font-size:2.5rem;margin:10px 0;}
-    h2{text-align:center;color:#444;margin-top:0;}
-    table{width:100%;border-collapse:collapse;}
-    th,td{border:1px solid #f2d36b;padding:6px;text-align:center;}
-    th{background:#ffec9f;}
-    td.chore{background:#fffaf0;text-align:left;}
-    button{border:none;border-radius:20px;padding:8px 16px;margin:5px;cursor:pointer;font-weight:600;}
-    .primary{background:#ffb200;}
-    .secondary{background:#4a8dff;color:white;}
-    .danger{background:#ff6b6b;color:white;}
-    input{padding:6px 8px;border:1px solid #ccc;border-radius:6px;}
-    .note{font-size:0.85rem;color:#666;text-align:center;margin-top:10px;}
+    * {
+      box-sizing: border-box;
+      font-family: "Comic Sans MS", "Poppins", sans-serif;
+    }
+    body {
+      margin: 0;
+      background: #fff9ed;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      background: white;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    h1 {
+      text-align: center;
+      color: #ff9c00;
+      font-size: 2.5rem;
+      margin: 10px 0;
+    }
+    h2 {
+      text-align: center;
+      color: #444;
+      margin-top: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #f2d36b;
+      padding: 6px;
+      text-align: center;
+    }
+    th {
+      background: #ffec9f;
+    }
+    td.chore {
+      background: #fffaf0;
+      text-align: left;
+    }
+    button {
+      border: none;
+      border-radius: 20px;
+      padding: 8px 16px;
+      margin: 5px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .primary {
+      background: #ffb200;
+    }
+    .secondary {
+      background: #4a8dff;
+      color: white;
+    }
+    .danger {
+      background: #ff6b6b;
+      color: white;
+    }
+    input {
+      padding: 6px 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .note {
+      font-size: 0.85rem;
+      color: #666;
+      text-align: center;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>🌟 SUPER KID CHORE QUEST 🌟</h1>
     <h2>Build Your Weekly Schedule</h2>
+
     <div style="text-align:center;margin-bottom:15px;">
       <label><b>Hero name:</b></label>
       <input id="kidName" placeholder="e.g. Jake the Super Kid" style="margin-left:5px;">
@@ -34,7 +95,16 @@
 
     <table id="scheduleTable">
       <thead>
-        <tr><th>Chore</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th></tr>
+        <tr>
+          <th>Chore</th>
+          <th>Mon</th>
+          <th>Tue</th>
+          <th>Wed</th>
+          <th>Thu</th>
+          <th>Fri</th>
+          <th>Sat</th>
+          <th>Sun</th>
+        </tr>
       </thead>
       <tbody id="scheduleBody"></tbody>
     </table>
@@ -49,121 +119,192 @@
       <button class="danger" onclick="clearSchedule()">Clear All</button>
     </div>
 
-    <p class="note">Your schedule is saved automatically and generates a colorful PDF when saved!</p>
+    <p class="note">
+      Your schedule is saved automatically and generates a colorful PDF when saved!
+    </p>
   </div>
 
   <script>
-    const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-    const DEFAULT_CHORES=["🛏 Bed Boss","🦷 Sparkle Squad","🥣 Breakfast Buddy","🧸 Toy Tamer","📚 Book Butler","🧺 Laundry Launcher","🚿 Tidy Tornado","🗑 Trash Hero","🧹 Crumb Crusher","🧊 Fridge Ranger"];
-    const scheduleBody=document.getElementById("scheduleBody");
+    const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+    const DEFAULT_CHORES = [
+      "🛏 Bed Boss",
+      "🦷 Sparkle Squad",
+      "🥣 Breakfast Buddy",
+      "🧸 Toy Tamer",
+      "📚 Book Butler",
+      "🧺 Laundry Launcher",
+      "🚿 Tidy Tornado",
+      "🗑 Trash Hero",
+      "🧹 Crumb Crusher",
+      "🧊 Fridge Ranger"
+    ];
+    const scheduleBody = document.getElementById("scheduleBody");
 
-    function renderTable(){
-      scheduleBody.innerHTML="";
-      const chores=JSON.parse(localStorage.getItem("chores")||JSON.stringify(DEFAULT_CHORES));
-      const saved=JSON.parse(localStorage.getItem("schedule")||"{}");
-      chores.forEach(chore=>{
-        const tr=document.createElement("tr");
-        const td=document.createElement("td");
-        td.textContent=chore;td.className="chore";tr.appendChild(td);
-        DAYS.forEach(day=>{
-          const cell=document.createElement("td");
-          const cb=document.createElement("input");cb.type="checkbox";
-          cb.dataset.chore=chore;cb.dataset.day=day;
-          if(saved[chore] && saved[chore].includes(day)) cb.checked=true;
-          cell.appendChild(cb);tr.appendChild(cell);
+    function renderTable() {
+      scheduleBody.innerHTML = "";
+      const chores = JSON.parse(localStorage.getItem("chores") || JSON.stringify(DEFAULT_CHORES));
+      const saved = JSON.parse(localStorage.getItem("schedule") || "{}");
+
+      chores.forEach(chore => {
+        const tr = document.createElement("tr");
+
+        const td = document.createElement("td");
+        td.textContent = chore;
+        td.className = "chore";
+        tr.appendChild(td);
+
+        DAYS.forEach(day => {
+          const cell = document.createElement("td");
+          const cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.dataset.chore = chore;
+          cb.dataset.day = day;
+
+          if (saved[chore] && saved[chore].includes(day)) {
+            cb.checked = true;
+          }
+
+          cell.appendChild(cb);
+          tr.appendChild(cell);
         });
+
         scheduleBody.appendChild(tr);
       });
     }
 
-    function addChore(){
-      const val=document.getElementById("newChore").value.trim();
-      if(!val)return;
-      const chores=JSON.parse(localStorage.getItem("chores")||JSON.stringify(DEFAULT_CHORES));
+    function addChore() {
+      const val = document.getElementById("newChore").value.trim();
+      if (!val) return;
+      const chores = JSON.parse(localStorage.getItem("chores") || JSON.stringify(DEFAULT_CHORES));
       chores.push(val);
-      localStorage.setItem("chores",JSON.stringify(chores));
-      document.getElementById("newChore").value="";
+      localStorage.setItem("chores", JSON.stringify(chores));
+      document.getElementById("newChore").value = "";
       renderTable();
     }
 
-    function clearSchedule(){
-      if(!confirm("Clear all chores and checkboxes?"))return;
+    function clearSchedule() {
+      if (!confirm("Clear all chores and checkboxes?")) return;
       localStorage.clear();
       renderTable();
+      document.getElementById("kidName").value = "";
     }
 
-    function saveSchedule(){
-      const kidName=document.getElementById("kidName").value||"Super Kid";
-      const schedule={};
-      document.querySelectorAll("#scheduleBody input[type=checkbox]").forEach(cb=>{
-        if(cb.checked){
-          if(!schedule[cb.dataset.chore]) schedule[cb.dataset.chore]=[];
+    function saveSchedule() {
+      const kidName = document.getElementById("kidName").value || "Super Kid";
+      const schedule = {};
+
+      document.querySelectorAll("#scheduleBody input[type=checkbox]").forEach(cb => {
+        if (cb.checked) {
+          if (!schedule[cb.dataset.chore]) schedule[cb.dataset.chore] = [];
           schedule[cb.dataset.chore].push(cb.dataset.day);
         }
       });
-      localStorage.setItem("schedule",JSON.stringify(schedule));
-      localStorage.setItem("kidName",kidName);
-      generatePDF(kidName,schedule);
+
+      localStorage.setItem("schedule", JSON.stringify(schedule));
+      localStorage.setItem("kidName", kidName);
+      generatePDF(kidName, schedule);
     }
 
-    function generatePDF(kidName,schedule){
+    // Clean chore name for PDF (no leading emoji)
+    function cleanChoreName(name) {
+      if (!name) return "";
+      // Strip leading non-letter characters (emoji etc.)
+      return name.replace(/^[^\p{L}\p{N}]+/u, "").trim() || name;
+    }
+
+    function generatePDF(kidName, schedule) {
       const { jsPDF } = window.jspdf;
-      const doc=new jsPDF({orientation:"landscape"});
-      const w=doc.internal.pageSize.getWidth();
-      const h=doc.internal.pageSize.getHeight();
+      const doc = new jsPDF({ orientation: "landscape" });
+      const w = doc.internal.pageSize.getWidth();
+      const h = doc.internal.pageSize.getHeight();
 
-      doc.setFont("helvetica","bold");
+      // ---- HEADER (no emojis so no weird characters) ----
+      doc.setFont("helvetica", "bold");
       doc.setFontSize(26);
-      doc.setTextColor(255,179,0);
-      doc.text("🌟 SUPER KID CHORE QUEST 🌟",w/2,18,{align:"center"});
+      doc.setTextColor(255, 179, 0);
+      doc.text("SUPER KID CHORE QUEST", w / 2, 18, { align: "center" });
 
-      doc.setTextColor(0,0,0);
+      doc.setTextColor(0, 0, 0);
       doc.setFontSize(20);
-      doc.text(`${kidName}'s Weekly Schedule`,w/2,32,{align:"center"});
+      doc.text(`${kidName}'s Weekly Schedule`, w / 2, 32, { align: "center" });
 
-      const colors=[
-        {r:255,g:179,b:186},
-        {r:255,g:223,b:186},
-        {r:255,g:255,b:186},
-        {r:186,g:255,b:201},
-        {r:186,g:225,b:255},
-        {r:213,g:186,b:255},
-        {r:255,g:214,b:255}
-      ];
-
-      const top=["Mon","Tue","Wed","Thu"],bottom=["Fri","Sat","Sun"];
-      const boxW=(w-40-(top.length-1)*10)/top.length;
-      const boxH=65,startTop=45,startBottom=startTop+boxH+15;
-      const dayChores={};DAYS.forEach(d=>dayChores[d]=[]);
-      Object.keys(schedule).forEach(ch=>{
-        (schedule[ch]||[]).forEach(d=>dayChores[d].push(ch));
+      // Build day → chores map
+      const dayChores = {};
+      DAYS.forEach(d => (dayChores[d] = []));
+      Object.keys(schedule).forEach(chore => {
+        const pretty = cleanChoreName(chore);
+        (schedule[chore] || []).forEach(day => {
+          if (dayChores[day] && !dayChores[day].includes(pretty)) {
+            dayChores[day].push(pretty);
+          }
+        });
       });
 
-      function drawBox(day,i,row,color){
-        const y=row==="top"?startTop:startBottom;
-        const x=20+i*(boxW+10);
-        const c=colors[color%colors.length];
-        doc.setFillColor(c.r,c.g,c.b);
-        doc.setDrawColor(255,179,0);
-        doc.roundedRect(x,y,boxW,boxH,3,3,"FD");
-        doc.setFont("helvetica","bold");doc.setFontSize(14);
-        doc.text(day,x+boxW/2,y+10,{align:"center"});
-        doc.setFont("helvetica","normal");doc.setFontSize(11);
-        const chores=dayChores[day].length?dayChores[day].map(c=>"• "+c.replace(/^[^\w]+/,"")).join("\n"):"— No chores —";
-        doc.text(doc.splitTextToSize(chores,boxW-10),x+5,y+20);
+      const colors = [
+        { r: 255, g: 179, b: 186 },
+        { r: 255, g: 223, b: 186 },
+        { r: 255, g: 255, b: 186 },
+        { r: 186, g: 255, b: 201 },
+        { r: 186, g: 225, b: 255 },
+        { r: 213, g: 186, b: 255 },
+        { r: 255, g: 214, b: 255 }
+      ];
+
+      const top = ["Mon","Tue","Wed","Thu"];
+      const bottom = ["Fri","Sat","Sun"];
+
+      const boxWidthTop = (w - 40 - (top.length - 1) * 10) / top.length;
+      const boxWidthBottom = (w - 40 - (bottom.length - 1) * 10) / bottom.length;
+      const boxHeight = 65;
+      const startTopY = 45;
+      const startBottomY = startTopY + boxHeight + 15;
+
+      doc.setFontSize(11);
+
+      function drawDayBox(day, index, row, colorIndex) {
+        const isTop = row === "top";
+        const boxWidth = isTop ? boxWidthTop : boxWidthBottom;
+        const x = 20 + index * (boxWidth + 10);
+        const y = isTop ? startTopY : startBottomY;
+        const c = colors[colorIndex % colors.length];
+
+        doc.setFillColor(c.r, c.g, c.b);
+        doc.setDrawColor(255, 179, 0);
+        doc.setLineWidth(0.7);
+        doc.roundedRect(x, y, boxWidth, boxHeight, 3, 3, "FD");
+
+        // Day title
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.setTextColor(60, 60, 60);
+        doc.text(day, x + boxWidth / 2, y + 10, { align: "center" });
+
+        // Chores text
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(11);
+        doc.setTextColor(40, 40, 40);
+
+        const choresForDay = dayChores[day] || [];
+        const text = choresForDay.length
+          ? choresForDay.map(c => "• " + c).join("\n")
+          : "— No chores —";
+
+        const lines = doc.splitTextToSize(text, boxWidth - 10);
+        doc.text(lines, x + 5, y + 22);
       }
 
-      top.forEach((d,i)=>drawBox(d,i,"top",i));
-      bottom.forEach((d,i)=>drawBox(d,i,"bottom",top.length+i));
+      top.forEach((d, i) => drawDayBox(d, i, "top", i));
+      bottom.forEach((d, i) => drawDayBox(d, i, "bottom", top.length + i));
 
-      doc.setFont("helvetica","italic");
+      // Footer (also no emoji to avoid junk characters)
+      doc.setFont("helvetica", "italic");
       doc.setFontSize(12);
-      doc.text(`Keep shining, ${kidName}! 🌈`,w/2,h-10,{align:"center"});
+      doc.setTextColor(90, 90, 90);
+      doc.text(`Keep shining, ${kidName}!`, w / 2, h - 10, { align: "center" });
+
       doc.save("SuperKidSchedule.pdf");
     }
 
+    // Init
     renderTable();
-    document.getElementById("kidName").value=localStorage.getItem("kidName")||"";
-  </script>
-</body>
-</html>
+    document.getEleme
