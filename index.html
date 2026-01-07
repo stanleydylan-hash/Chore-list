@@ -96,6 +96,61 @@
       margin-top: 10px;
     }
 
+    /* ---------- NEW: Hover description + edit button ---------- */
+    .chore-cell {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: space-between;
+    }
+
+    .chore-text {
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .edit-btn {
+      background: #ffe6a6;
+      border: 1px solid #f2d36b;
+      border-radius: 12px;
+      padding: 4px 10px;
+      margin: 0;
+      font-weight: 800;
+      font-size: 12px;
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+    .edit-btn:hover {
+      filter: brightness(0.98);
+    }
+
+    .chore-tooltip {
+      position: absolute;
+      left: 0;
+      top: calc(100% + 6px);
+      width: min(360px, 70vw);
+      background: rgba(255,255,255,0.98);
+      border: 2px solid rgba(255, 179, 0, 0.55);
+      border-radius: 14px;
+      padding: 10px 12px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+      color: #444;
+      font-size: 13px;
+      line-height: 1.25rem;
+      display: none;
+      z-index: 20;
+    }
+
+    /* show tooltip on hover OR keyboard focus within */
+    td.chore:hover .chore-tooltip,
+    td.chore:focus-within .chore-tooltip {
+      display: block;
+    }
+
     /* ---------- Poster (for PDF) ---------- */
     #posterWrapper {
       position: fixed;
@@ -273,19 +328,93 @@
       "🧊 Fridge Ranger"
     ];
 
+    // NEW: default one–two sentence descriptions (can be edited later)
+    const DEFAULT_DESCRIPTIONS = {
+      "🛏 Bed Boss": "Make your bed neatly—pull up the sheets and smooth the blanket so it looks ready for a hero day.",
+      "🦷 Sparkle Squad": "Brush your teeth for a full 2 minutes and rinse. Bonus points for flossing gently!",
+      "🥣 Breakfast Buddy": "Help with breakfast by setting out bowls, pouring cereal, or cleaning up your spot afterward.",
+      "🧸 Toy Tamer": "Pick up toys and put them back where they belong so the room stays calm and clean.",
+      "📚 Book Butler": "Put books back on the shelf or in a tidy stack. Keep pages safe and corners unbent.",
+      "🧺 Laundry Launcher": "Put dirty clothes in the hamper and bring laundry to the right place when asked.",
+      "🚿 Tidy Tornado": "Quick clean-up: wipe a surface, straighten a space, or make the bathroom look presentable.",
+      "🗑 Trash Hero": "Collect small trash and put it in the bin. Replace the liner if it’s full.",
+      "🧹 Crumb Crusher": "Sweep crumbs or small messes into a pile and toss them—leave the floor feeling fresh.",
+      "🧊 Fridge Ranger": "Check for old leftovers (ask first!) and make sure items are closed and put back neatly."
+    };
+
     const scheduleBody = document.getElementById("scheduleBody");
+
+    // NEW: helpers to store/retrieve descriptions
+    function getChores() {
+      return JSON.parse(localStorage.getItem("chores") || JSON.stringify(DEFAULT_CHORES));
+    }
+
+    function getSchedule() {
+      return JSON.parse(localStorage.getItem("schedule") || "{}");
+    }
+
+    function setSchedule(obj) {
+      localStorage.setItem("schedule", JSON.stringify(obj));
+    }
+
+    function getDescriptions() {
+      // Start with defaults, then overlay saved edits
+      const saved = JSON.parse(localStorage.getItem("choreDescriptions") || "{}");
+      return { ...DEFAULT_DESCRIPTIONS, ...saved };
+    }
+
+    function setDescriptions(map) {
+      localStorage.setItem("choreDescriptions", JSON.stringify(map));
+    }
+
+    function getDescriptionFor(chore) {
+      const desc = getDescriptions()[chore];
+      return (desc && desc.trim())
+        ? desc.trim()
+        : "Do this chore carefully, then check the box when you’re done. You’ve got this!";
+    }
 
     function renderTable() {
       scheduleBody.innerHTML = "";
-      const chores = JSON.parse(localStorage.getItem("chores") || JSON.stringify(DEFAULT_CHORES));
-      const saved = JSON.parse(localStorage.getItem("schedule") || "{}");
+      const chores = getChores();
+      const saved = getSchedule();
+      const descMap = getDescriptions();
 
       chores.forEach(chore => {
         const tr = document.createElement("tr");
 
         const td = document.createElement("td");
-        td.textContent = chore;
         td.className = "chore";
+
+        // chore cell layout (text + edit button + hover tooltip)
+        const wrap = document.createElement("div");
+        wrap.className = "chore-cell";
+
+        const text = document.createElement("div");
+        text.className = "chore-text";
+        text.textContent = chore;
+
+        const edit = document.createElement("button");
+        edit.className = "edit-btn";
+        edit.type = "button";
+        edit.textContent = "Edit";
+        edit.setAttribute("aria-label", `Edit chore: ${chore}`);
+        edit.onclick = (e) => {
+          e.stopPropagation();
+          editChore(chore);
+        };
+
+        const tip = document.createElement("div");
+        tip.className = "chore-tooltip";
+        tip.textContent = (descMap[chore] && descMap[chore].trim())
+          ? descMap[chore].trim()
+          : getDescriptionFor(chore);
+
+        wrap.appendChild(text);
+        wrap.appendChild(edit);
+        td.appendChild(wrap);
+        td.appendChild(tip);
+
         tr.appendChild(td);
 
         DAYS.forEach(day => {
@@ -308,9 +437,19 @@
     function addChore() {
       const val = document.getElementById("newChore").value.trim();
       if (!val) return;
-      const chores = JSON.parse(localStorage.getItem("chores") || JSON.stringify(DEFAULT_CHORES));
+
+      const chores = getChores();
       chores.push(val);
       localStorage.setItem("chores", JSON.stringify(chores));
+
+      // NEW: optional quick description prompt (kept brief)
+      const desc = prompt("Optional: add a 1–2 sentence description for this chore:", "");
+      if (desc !== null) {
+        const descMap = getDescriptions();
+        descMap[val] = desc.trim();
+        setDescriptions(descMap);
+      }
+
       document.getElementById("newChore").value = "";
       renderTable();
     }
@@ -320,6 +459,78 @@
       localStorage.clear();
       renderTable();
       document.getElementById("kidName").value = "";
+    }
+
+    // NEW: edit chore name + description, safely updates schedule keys
+    function editChore(oldChore) {
+      const chores = getChores();
+      const schedule = getSchedule();
+      const descMap = getDescriptions();
+
+      const currentDesc = (descMap[oldChore] ?? "").trim();
+
+      const newChore = prompt("Edit chore name (emojis welcome!):", oldChore);
+      if (newChore === null) return; // cancelled
+      const trimmedNew = newChore.trim();
+      if (!trimmedNew) return;
+
+      const newDesc = prompt("Edit description (1–2 sentences):", currentDesc);
+      if (newDesc === null) return; // cancelled
+      const trimmedDesc = newDesc.trim();
+
+      // Update chores list
+      const idx = chores.indexOf(oldChore);
+      if (idx === -1) return;
+
+      // If user renamed to an existing chore name (different one), we’ll merge schedule + descriptions.
+      const isRename = trimmedNew !== oldChore;
+      const alreadyExists = chores.includes(trimmedNew) && trimmedNew !== oldChore;
+
+      // Update chores array
+      if (!alreadyExists) {
+        chores[idx] = trimmedNew;
+      } else {
+        // remove old chore from list if merging into existing name
+        chores.splice(idx, 1);
+      }
+      localStorage.setItem("chores", JSON.stringify(chores));
+
+      // Update descriptions
+      if (isRename) {
+        if (!alreadyExists) {
+          // move old desc to new key
+          if (trimmedDesc) descMap[trimmedNew] = trimmedDesc;
+          else delete descMap[trimmedNew]; // keep defaults if any
+        } else {
+          // merging into existing: just overwrite/merge desc if provided
+          if (trimmedDesc) descMap[trimmedNew] = trimmedDesc;
+        }
+        // remove old key (but keep defaults untouched by not writing them back)
+        delete descMap[oldChore];
+      } else {
+        // name unchanged, just set desc
+        if (trimmedDesc) descMap[oldChore] = trimmedDesc;
+        else delete descMap[oldChore];
+      }
+      // Persist ONLY user-edited overrides (not the default list)
+      // We store overrides by writing the map minus defaults.
+      const overrides = { ...descMap };
+      Object.keys(DEFAULT_DESCRIPTIONS).forEach(k => {
+        if (overrides[k] === DEFAULT_DESCRIPTIONS[k]) delete overrides[k];
+      });
+      setDescriptions(overrides);
+
+      // Update schedule keys if renamed/merged
+      if (isRename) {
+        const oldDays = schedule[oldChore] || [];
+        const newDays = schedule[trimmedNew] || [];
+        const merged = Array.from(new Set([...newDays, ...oldDays]));
+        if (merged.length > 0) schedule[trimmedNew] = merged;
+        delete schedule[oldChore];
+        setSchedule(schedule);
+      }
+
+      renderTable();
     }
 
     function saveSchedule() {
@@ -333,7 +544,7 @@
         }
       });
 
-      localStorage.setItem("schedule", JSON.stringify(schedule));
+      setSchedule(schedule);
       localStorage.setItem("kidName", kidName);
 
       buildPosterAndGeneratePDF(kidName, schedule);
