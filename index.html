@@ -1,21 +1,27 @@
+
+   
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Super Kid Chore Quest</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <style>
     * {
       box-sizing: border-box;
-      font-family: "Comic Sans MS", "Poppins", system-ui, sans-serif;
+      margin: 0;
+      padding: 0;
     }
 
     body {
-      margin: 0;
-      background: #fff9ed;
+      font-family: "Comic Sans MS", "Poppins", system-ui, sans-serif;
+      background: linear-gradient(135deg, #fff9ed 0%, #ffe8cc 100%);
       padding: 20px;
+      min-height: 100vh;
     }
 
     .container {
@@ -24,7 +30,7 @@
       background: white;
       padding: 25px;
       border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
     }
 
     h1 {
@@ -32,77 +38,174 @@
       color: #ff9c00;
       font-size: 2.5rem;
       margin: 10px 0;
+      text-shadow: 2px 2px 0 rgba(255, 156, 0, 0.2);
     }
 
     h2 {
       text-align: center;
       color: #444;
       margin-top: 0;
+      font-size: 1.5rem;
+    }
+
+    /* Desktop Table */
+    .desktop-table {
+      display: block;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
+      margin: 20px 0;
     }
 
     th, td {
-      border: 1px solid #f2d36b;
-      padding: 6px;
+      border: 2px solid #f2d36b;
+      padding: 8px;
       text-align: center;
     }
 
     th {
-      background: #ffec9f;
+      background: linear-gradient(135deg, #ffec9f, #ffd96b);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+      color: #333;
     }
 
     td.chore {
       background: #fffaf0;
       text-align: left;
+      position: relative;
     }
 
+    td input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: #ff9c00;
+    }
+
+    /* Mobile Cards */
+    .mobile-cards {
+      display: none;
+    }
+
+    .day-card-mobile {
+      background: white;
+      border-radius: 15px;
+      padding: 15px;
+      margin-bottom: 15px;
+      border: 2px solid #f2d36b;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .day-card-mobile h3 {
+      color: #ff9c00;
+      margin-bottom: 10px;
+      font-size: 1.3rem;
+    }
+
+    .chore-checkbox-item {
+      display: flex;
+      align-items: center;
+      padding: 8px;
+      border-bottom: 1px solid #f0f0f0;
+      gap: 12px;
+    }
+
+    .chore-checkbox-item:last-child {
+      border-bottom: none;
+    }
+
+    .chore-checkbox-item input[type="checkbox"] {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .chore-checkbox-item label {
+      flex: 1;
+      font-size: 1rem;
+      color: #444;
+      cursor: pointer;
+    }
+
+    /* Buttons */
     button {
       border: none;
-      border-radius: 20px;
-      padding: 8px 16px;
+      border-radius: 12px;
+      padding: 12px 20px;
       margin: 5px;
       cursor: pointer;
-      font-weight: 600;
+      font-weight: 700;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
     }
 
     .primary {
-      background: #ffb200;
+      background: linear-gradient(135deg, #ffb200, #ff9c00);
+      color: white;
     }
 
     .secondary {
-      background: #4a8dff;
+      background: linear-gradient(135deg, #5ca3ff, #4a8dff);
+      color: white;
+    }
+
+    .success {
+      background: linear-gradient(135deg, #51cf66, #40c057);
       color: white;
     }
 
     .danger {
-      background: #ff6b6b;
+      background: linear-gradient(135deg, #ff8787, #ff6b6b);
       color: white;
     }
 
-    input {
-      padding: 6px 8px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+    .outline {
+      background: white;
+      border: 2px solid #ff9c00;
+      color: #ff9c00;
     }
 
-    .note {
-      font-size: 0.85rem;
-      color: #666;
-      text-align: center;
-      margin-top: 10px;
+    /* Input Fields */
+    input[type="text"] {
+      padding: 10px 12px;
+      border: 2px solid #f2d36b;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
     }
 
-    /* ---------- NEW: Hover description + edit button ---------- */
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #ff9c00;
+    }
+
+    /* Chore Cell Components */
     .chore-cell {
-      position: relative;
       display: flex;
       align-items: center;
-      gap: 10px;
       justify-content: space-between;
+      gap: 10px;
     }
 
     .chore-text {
@@ -111,53 +214,194 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      font-weight: 700;
+      color: #444;
+      font-size: 1rem;
     }
 
     .edit-btn {
       background: #ffe6a6;
       border: 1px solid #f2d36b;
-      border-radius: 12px;
-      padding: 4px 10px;
+      border-radius: 8px;
+      padding: 5px 12px;
       margin: 0;
-      font-weight: 800;
-      font-size: 12px;
+      font-weight: 700;
+      font-size: 0.85rem;
       cursor: pointer;
       flex: 0 0 auto;
+      transition: all 0.2s;
     }
+
     .edit-btn:hover {
-      filter: brightness(0.98);
+      background: #ffd96b;
+      transform: scale(1.05);
     }
 
     .chore-tooltip {
       position: absolute;
-      left: 0;
+      left: 8px;
       top: calc(100% + 6px);
-      width: min(360px, 70vw);
+      width: min(380px, 78vw);
       background: rgba(255,255,255,0.98);
       border: 2px solid rgba(255, 179, 0, 0.55);
       border-radius: 14px;
-      padding: 10px 12px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+      padding: 12px 14px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.15);
       color: #444;
-      font-size: 13px;
-      line-height: 1.25rem;
+      font-size: 0.9rem;
+      line-height: 1.4;
       display: none;
       z-index: 20;
     }
 
-    /* show tooltip on hover OR keyboard focus within */
     td.chore:hover .chore-tooltip,
     td.chore:focus-within .chore-tooltip {
       display: block;
+      animation: fadeInUp 0.2s ease;
     }
 
-    /* ---------- Poster (for PDF) ---------- */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(-5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Form Sections */
+    .form-section {
+      text-align: center;
+      margin: 20px 0;
+      padding: 15px;
+      background: #fffaf0;
+      border-radius: 12px;
+    }
+
+    .form-section label {
+      font-weight: 700;
+      color: #444;
+      margin-right: 8px;
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .note {
+      font-size: 0.9rem;
+      color: #666;
+      text-align: center;
+      margin-top: 15px;
+      font-style: italic;
+    }
+
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: white;
+      padding: 15px 20px;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+      border-left: 4px solid;
+      animation: slideIn 0.3s ease;
+      min-width: 250px;
+      max-width: 350px;
+    }
+
+    .toast.success {
+      border-color: #40c057;
+    }
+
+    .toast.error {
+      border-color: #ff6b6b;
+    }
+
+    .toast.info {
+      border-color: #4a8dff;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .loading-content {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+
+    .loading-content h2 {
+      color: #ff9c00;
+      margin-bottom: 15px;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #ff9c00;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Poster (for PDF) */
     #posterWrapper {
       position: fixed;
       left: -9999px;
       top: 0;
       width: 1200px;
-      height: 100vh;
+      height: 900px;
       padding: 0;
       background: linear-gradient(135deg, #ffeaa7, #ffd29d);
       z-index: -1;
@@ -168,7 +412,7 @@
       width: 100%;
       height: 100%;
       border-radius: 0;
-      padding: 30px;
+      padding: 40px;
       background: none;
       display: flex;
       flex-direction: column;
@@ -177,18 +421,19 @@
 
     .poster-title {
       text-align: center;
-      font-size: 38px;
+      font-size: 42px;
       font-weight: 800;
       color: #ff9c00;
-      margin: 0;
+      margin: 0 0 10px 0;
+      text-shadow: 3px 3px 0 rgba(255, 156, 0, 0.2);
     }
 
     .poster-subtitle {
       text-align: center;
-      font-size: 26px;
+      font-size: 28px;
       font-weight: 700;
       color: #333;
-      margin: 8px 0 18px 0;
+      margin: 0 0 30px 0;
     }
 
     .poster-board {
@@ -201,43 +446,45 @@
     .poster-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
+      gap: 16px;
       justify-content: center;
     }
 
     .poster-grid.bottom {
-      margin-top: 14px;
+      margin-top: 16px;
       grid-template-columns: repeat(3, 1fr);
     }
 
     .day-card {
-      border-radius: 16px;
-      padding: 12px 14px;
-      border: 2px solid rgba(255, 179, 0, 0.9);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
-      min-height: 110px;
+      border-radius: 18px;
+      padding: 16px;
+      border: 3px solid rgba(255, 179, 0, 0.9);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+      min-height: 120px;
       text-align: center;
       background: rgba(255,255,255,0.95);
     }
 
     .day-card.free {
       background: linear-gradient(135deg, #fff4c3, #ffe07b);
-      border: 2px solid #ffcd3c;
+      border: 3px solid #ffcd3c;
       color: #ff9500;
-      font-weight: bold;
-      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
     }
 
     .day-name {
       font-weight: 800;
-      font-size: 16px;
+      font-size: 18px;
       color: #444;
-      margin-bottom: 4px;
+      margin-bottom: 8px;
       text-transform: uppercase;
     }
 
     .chore-list {
-      font-size: 14px;
+      font-size: 15px;
       color: #444;
       list-style: none;
       padding: 0;
@@ -247,55 +494,151 @@
     }
 
     .chore-list li {
-      margin: 3px 0;
+      margin: 5px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .chore-list li:before {
+      content: "⭐";
+      position: absolute;
+      left: 0;
     }
 
     .poster-footer {
-      margin-top: 16px;
+      margin-top: 20px;
       text-align: center;
-      font-size: 14px;
+      font-size: 16px;
       font-style: italic;
       color: #444;
     }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+
+      h2 {
+        font-size: 1.2rem;
+      }
+
+      .container {
+        padding: 15px;
+      }
+
+      .desktop-table {
+        display: none;
+      }
+
+      .mobile-cards {
+        display: block;
+      }
+
+      button {
+        padding: 10px 16px;
+        font-size: 0.95rem;
+      }
+
+      .toast-container {
+        right: 10px;
+        left: 10px;
+      }
+
+      .toast {
+        min-width: auto;
+      }
+
+      .form-section input[type="text"] {
+        width: 100%;
+        max-width: 300px;
+      }
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+
+      .container {
+        box-shadow: none;
+        max-width: 100%;
+      }
+
+      button,
+      input[type="text"],
+      .form-section,
+      .note,
+      .edit-btn {
+        display: none !important;
+      }
+
+      table {
+        page-break-inside: avoid;
+      }
+
+      .chore-tooltip {
+        display: none !important;
+      }
+
+      th, td {
+        border-color: #333 !important;
+      }
+    }
   </style>
 </head>
+
 <body>
+  <div id="toastContainer" class="toast-container"></div>
+
   <div class="container">
     <h1>🌟 SUPER KID CHORE QUEST 🌟</h1>
     <h2>Build Your Weekly Schedule</h2>
 
-    <div style="text-align:center;margin-bottom:15px;">
+    <div class="form-section">
       <label><b>Hero name:</b></label>
-      <input id="kidName" placeholder="e.g. Jake the Super Kid" style="margin-left:5px;">
+      <input id="kidName" type="text" placeholder="e.g. Jake the Super Kid" aria-label="Enter child's name">
     </div>
 
-    <table id="scheduleTable">
-      <thead>
-        <tr>
-          <th>Chore</th>
-          <th>Mon</th>
-          <th>Tue</th>
-          <th>Wed</th>
-          <th>Thu</th>
-          <th>Fri</th>
-          <th>Sat</th>
-          <th>Sun</th>
-        </tr>
-      </thead>
-      <tbody id="scheduleBody"></tbody>
-    </table>
+    <!-- Desktop Table View -->
+    <div class="desktop-table">
+      <table id="scheduleTable">
+        <thead>
+          <tr>
+            <th>Chore</th>
+            <th>Mon</th>
+            <th>Tue</th>
+            <th>Wed</th>
+            <th>Thu</th>
+            <th>Fri</th>
+            <th>Sat</th>
+            <th>Sun</th>
+          </tr>
+        </thead>
+        <tbody id="scheduleBody"></tbody>
+      </table>
+    </div>
 
-    <div style="text-align:center;margin-top:15px;">
-      <input id="newChore" placeholder="Add a new chore (emoji welcome!)">
+    <!-- Mobile Cards View -->
+    <div class="mobile-cards" id="mobileCards"></div>
+
+    <div class="form-section">
+      <input id="newChore" type="text" placeholder="Add a new chore (emoji welcome!)" aria-label="New chore name">
       <button class="primary" onclick="addChore()">Add Chore</button>
     </div>
 
-    <div style="text-align:center;margin-top:15px;">
-      <button class="secondary" onclick="saveSchedule()">Save Schedule (Generate PDF)</button>
-      <button class="danger" onclick="clearSchedule()">Clear All</button>
+    <div class="button-group">
+      <button class="secondary" onclick="saveSchedule()" id="saveBtn">💾 Save & Download PDF</button>
+      <button class="success" onclick="exportSchedule()">📤 Export Schedule</button>
+      <button class="outline" onclick="document.getElementById('importFile').click()">📥 Import Schedule</button>
+      <button class="danger" onclick="clearSchedule()">🗑️ Clear All</button>
     </div>
 
-    <p class="note">Your schedule is saved automatically and generates a fun PDF when saved!</p>
+    <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importSchedule(event)">
+
+    <p class="note">✨ Your schedule saves automatically! Click "Save & Download PDF" to get a printable copy.</p>
   </div>
 
   <!-- Hidden poster for PDF -->
@@ -315,6 +658,7 @@
 
   <script>
     const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
     const DEFAULT_CHORES = [
       "🛏 Bed Boss",
       "🦷 Sparkle Squad",
@@ -328,7 +672,6 @@
       "🧊 Fridge Ranger"
     ];
 
-    // NEW: default one–two sentence descriptions (can be edited later)
     const DEFAULT_DESCRIPTIONS = {
       "🛏 Bed Boss": "Make your bed neatly—pull up the sheets and smooth the blanket so it looks ready for a hero day.",
       "🦷 Sparkle Squad": "Brush your teeth for a full 2 minutes and rinse. Bonus points for flossing gently!",
@@ -337,16 +680,52 @@
       "📚 Book Butler": "Put books back on the shelf or in a tidy stack. Keep pages safe and corners unbent.",
       "🧺 Laundry Launcher": "Put dirty clothes in the hamper and bring laundry to the right place when asked.",
       "🚿 Tidy Tornado": "Quick clean-up: wipe a surface, straighten a space, or make the bathroom look presentable.",
-      "🗑 Trash Hero": "Collect small trash and put it in the bin. Replace the liner if it’s full.",
+      "🗑 Trash Hero": "Collect small trash and put it in the bin. Replace the liner if it's full.",
       "🧹 Crumb Crusher": "Sweep crumbs or small messes into a pile and toss them—leave the floor feeling fresh.",
       "🧊 Fridge Ranger": "Check for old leftovers (ask first!) and make sure items are closed and put back neatly."
     };
 
-    const scheduleBody = document.getElementById("scheduleBody");
+    // ===== Toast Notifications =====
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      
+      container.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
 
-    // NEW: helpers to store/retrieve descriptions
+    // ===== Loading Overlay =====
+    function showLoading() {
+      const overlay = document.createElement('div');
+      overlay.className = 'loading-overlay';
+      overlay.id = 'loadingOverlay';
+      overlay.innerHTML = `
+        <div class="loading-content">
+          <h2>🎨 Creating Your Schedule...</h2>
+          <div class="spinner"></div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+    }
+
+    function hideLoading() {
+      const overlay = document.getElementById('loadingOverlay');
+      if (overlay) overlay.remove();
+    }
+
+    // ===== Local Storage Helpers =====
     function getChores() {
       return JSON.parse(localStorage.getItem("chores") || JSON.stringify(DEFAULT_CHORES));
+    }
+
+    function setChores(arr) {
+      localStorage.setItem("chores", JSON.stringify(arr));
     }
 
     function getSchedule() {
@@ -357,36 +736,35 @@
       localStorage.setItem("schedule", JSON.stringify(obj));
     }
 
-    function getDescriptions() {
-      // Start with defaults, then overlay saved edits
-      const saved = JSON.parse(localStorage.getItem("choreDescriptions") || "{}");
-      return { ...DEFAULT_DESCRIPTIONS, ...saved };
+    function getDescriptionOverrides() {
+      return JSON.parse(localStorage.getItem("choreDescriptions") || "{}");
     }
 
-    function setDescriptions(map) {
+    function setDescriptionOverrides(map) {
       localStorage.setItem("choreDescriptions", JSON.stringify(map));
     }
 
     function getDescriptionFor(chore) {
-      const desc = getDescriptions()[chore];
-      return (desc && desc.trim())
-        ? desc.trim()
-        : "Do this chore carefully, then check the box when you’re done. You’ve got this!";
+      const overrides = getDescriptionOverrides();
+      if (overrides[chore] && overrides[chore].trim()) return overrides[chore].trim();
+      if (DEFAULT_DESCRIPTIONS[chore]) return DEFAULT_DESCRIPTIONS[chore];
+      return "Do this chore carefully, then check the box when you're done. You've got this!";
     }
 
+    // ===== Render Functions =====
     function renderTable() {
+      const scheduleBody = document.getElementById("scheduleBody");
       scheduleBody.innerHTML = "";
       const chores = getChores();
       const saved = getSchedule();
-      const descMap = getDescriptions();
 
       chores.forEach(chore => {
         const tr = document.createElement("tr");
 
+        // Chore cell
         const td = document.createElement("td");
         td.className = "chore";
 
-        // chore cell layout (text + edit button + hover tooltip)
         const wrap = document.createElement("div");
         wrap.className = "chore-cell";
 
@@ -398,33 +776,34 @@
         edit.className = "edit-btn";
         edit.type = "button";
         edit.textContent = "Edit";
-        edit.setAttribute("aria-label", `Edit chore: ${chore}`);
+        edit.setAttribute('aria-label', `Edit ${chore}`);
         edit.onclick = (e) => {
           e.stopPropagation();
           editChore(chore);
         };
 
-        const tip = document.createElement("div");
-        tip.className = "chore-tooltip";
-        tip.textContent = (descMap[chore] && descMap[chore].trim())
-          ? descMap[chore].trim()
-          : getDescriptionFor(chore);
+        const tooltip = document.createElement("div");
+        tooltip.className = "chore-tooltip";
+        tooltip.textContent = getDescriptionFor(chore);
 
         wrap.appendChild(text);
         wrap.appendChild(edit);
         td.appendChild(wrap);
-        td.appendChild(tip);
-
+        td.appendChild(tooltip);
         tr.appendChild(td);
 
+        // Day checkboxes
         DAYS.forEach(day => {
           const cell = document.createElement("td");
           const cb = document.createElement("input");
           cb.type = "checkbox";
           cb.dataset.chore = chore;
           cb.dataset.day = day;
+          cb.setAttribute('aria-label', `Assign ${chore} to ${day}`);
 
           if (saved[chore] && saved[chore].includes(day)) cb.checked = true;
+
+          cb.addEventListener('change', autoSaveSchedule);
 
           cell.appendChild(cb);
           tr.appendChild(cell);
@@ -434,119 +813,224 @@
       });
     }
 
-    function addChore() {
-      const val = document.getElementById("newChore").value.trim();
-      if (!val) return;
-
+    function renderMobileCards() {
+      const container = document.getElementById("mobileCards");
+      container.innerHTML = "";
       const chores = getChores();
-      chores.push(val);
-      localStorage.setItem("chores", JSON.stringify(chores));
+      const saved = getSchedule();
 
-      // NEW: optional quick description prompt (kept brief)
-      const desc = prompt("Optional: add a 1–2 sentence description for this chore:", "");
-      if (desc !== null) {
-        const descMap = getDescriptions();
-        descMap[val] = desc.trim();
-        setDescriptions(descMap);
-      }
+      DAYS.forEach(day => {
+        const card = document.createElement("div");
+        card.className = "day-card-mobile";
 
-      document.getElementById("newChore").value = "";
-      renderTable();
-    }
+        const title = document.createElement("h3");
+        title.textContent = day;
+        card.appendChild(title);
 
-    function clearSchedule() {
-      if (!confirm("Clear all chores and checkboxes?")) return;
-      localStorage.clear();
-      renderTable();
-      document.getElementById("kidName").value = "";
-    }
+        chores.forEach(chore => {
+          const item = document.createElement("div");
+          item.className = "chore-checkbox-item";
 
-    // NEW: edit chore name + description, safely updates schedule keys
-    function editChore(oldChore) {
-      const chores = getChores();
-      const schedule = getSchedule();
-      const descMap = getDescriptions();
+          const cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.id = `mobile-${chore}-${day}`;
+          cb.dataset.chore = chore;
+          cb.dataset.day = day;
 
-      const currentDesc = (descMap[oldChore] ?? "").trim();
+          if (saved[chore] && saved[chore].includes(day)) cb.checked = true;
 
-      const newChore = prompt("Edit chore name (emojis welcome!):", oldChore);
-      if (newChore === null) return; // cancelled
-      const trimmedNew = newChore.trim();
-      if (!trimmedNew) return;
+          cb.addEventListener('change', autoSaveSchedule);
 
-      const newDesc = prompt("Edit description (1–2 sentences):", currentDesc);
-      if (newDesc === null) return; // cancelled
-      const trimmedDesc = newDesc.trim();
+          const label = document.createElement("label");
+          label.setAttribute('for', cb.id);
+          label.textContent = chore;
 
-      // Update chores list
-      const idx = chores.indexOf(oldChore);
-      if (idx === -1) return;
+          item.appendChild(cb);
+          item.appendChild(label);
+          card.appendChild(item);
+        });
 
-      // If user renamed to an existing chore name (different one), we’ll merge schedule + descriptions.
-      const isRename = trimmedNew !== oldChore;
-      const alreadyExists = chores.includes(trimmedNew) && trimmedNew !== oldChore;
-
-      // Update chores array
-      if (!alreadyExists) {
-        chores[idx] = trimmedNew;
-      } else {
-        // remove old chore from list if merging into existing name
-        chores.splice(idx, 1);
-      }
-      localStorage.setItem("chores", JSON.stringify(chores));
-
-      // Update descriptions
-      if (isRename) {
-        if (!alreadyExists) {
-          // move old desc to new key
-          if (trimmedDesc) descMap[trimmedNew] = trimmedDesc;
-          else delete descMap[trimmedNew]; // keep defaults if any
-        } else {
-          // merging into existing: just overwrite/merge desc if provided
-          if (trimmedDesc) descMap[trimmedNew] = trimmedDesc;
-        }
-        // remove old key (but keep defaults untouched by not writing them back)
-        delete descMap[oldChore];
-      } else {
-        // name unchanged, just set desc
-        if (trimmedDesc) descMap[oldChore] = trimmedDesc;
-        else delete descMap[oldChore];
-      }
-      // Persist ONLY user-edited overrides (not the default list)
-      // We store overrides by writing the map minus defaults.
-      const overrides = { ...descMap };
-      Object.keys(DEFAULT_DESCRIPTIONS).forEach(k => {
-        if (overrides[k] === DEFAULT_DESCRIPTIONS[k]) delete overrides[k];
+        container.appendChild(card);
       });
-      setDescriptions(overrides);
-
-      // Update schedule keys if renamed/merged
-      if (isRename) {
-        const oldDays = schedule[oldChore] || [];
-        const newDays = schedule[trimmedNew] || [];
-        const merged = Array.from(new Set([...newDays, ...oldDays]));
-        if (merged.length > 0) schedule[trimmedNew] = merged;
-        delete schedule[oldChore];
-        setSchedule(schedule);
-      }
-
-      renderTable();
     }
 
-    function saveSchedule() {
-      const kidName = document.getElementById("kidName").value || "Super Kid";
+    function render() {
+      renderTable();
+      renderMobileCards();
+    }
+
+    // ===== Auto Save =====
+    function autoSaveSchedule() {
       const schedule = {};
 
-      document.querySelectorAll("#scheduleBody input[type=checkbox]").forEach(cb => {
+      document.querySelectorAll("input[type=checkbox][data-chore]").forEach(cb => {
         if (cb.checked) {
           if (!schedule[cb.dataset.chore]) schedule[cb.dataset.chore] = [];
-          schedule[cb.dataset.chore].push(cb.dataset.day);
+          if (!schedule[cb.dataset.chore].includes(cb.dataset.day)) {
+            schedule[cb.dataset.chore].push(cb.dataset.day);
+          }
         }
       });
 
       setSchedule(schedule);
+    }
+
+    // ===== Chore Management =====
+    function addChore() {
+      const val = document.getElementById("newChore").value.trim();
+      if (!val) {
+        showToast("Please enter a chore name!", "error");
+        return;
+      }
+
+      const chores = getChores();
+      
+      if (chores.includes(val)) {
+        showToast("This chore already exists!", "error");
+        return;
+      }
+
+      chores.push(val);
+      setChores(chores);
+
+      const desc = prompt("Optional: add a 1–2 sentence description for this chore:", "");
+      if (desc !== null && desc.trim()) {
+        const overrides = getDescriptionOverrides();
+        overrides[val] = desc.trim();
+        setDescriptionOverrides(overrides);
+      }
+
+      document.getElementById("newChore").value = "";
+      render();
+      showToast(`✅ Added "${val}" to your chore list!`, "success");
+    }
+
+    function editChore(oldChore) {
+      const chores = getChores();
+      const schedule = getSchedule();
+      const overrides = getDescriptionOverrides();
+
+      const currentDesc = (overrides[oldChore] ?? DEFAULT_DESCRIPTIONS[oldChore] ?? "").trim();
+
+      const newChoreName = prompt("Edit chore name (emojis welcome!):", oldChore);
+      if (newChoreName === null) return;
+      const newChore = newChoreName.trim();
+      if (!newChore) return;
+
+      const newDescInput = prompt("Edit description (1–2 sentences):", currentDesc);
+      if (newDescInput === null) return;
+      const newDesc = newDescInput.trim();
+
+      const oldIdx = chores.indexOf(oldChore);
+      if (oldIdx === -1) return;
+
+      const isRename = newChore !== oldChore;
+      const alreadyExists = chores.includes(newChore) && newChore !== oldChore;
+
+      // Update chores list
+      if (isRename) {
+        if (!alreadyExists) {
+          chores[oldIdx] = newChore;
+        } else {
+          chores.splice(oldIdx, 1);
+        }
+      }
+
+      setChores(chores);
+
+      // Update descriptions
+      if (isRename) {
+        if (newDesc) overrides[newChore] = newDesc;
+        else delete overrides[newChore];
+        delete overrides[oldChore];
+      } else {
+        if (newDesc) overrides[oldChore] = newDesc;
+        else delete overrides[oldChore];
+      }
+      setDescriptionOverrides(overrides);
+
+      // Update schedule
+      if (isRename) {
+        const oldDays = schedule[oldChore] || [];
+        const newDays = schedule[newChore] || [];
+        const merged = Array.from(new Set([...newDays, ...oldDays]));
+        if (merged.length) schedule[newChore] = merged;
+        delete schedule[oldChore];
+        setSchedule(schedule);
+      }
+
+      render();
+      showToast("✅ Chore updated successfully!", "success");
+    }
+
+    function clearSchedule() {
+      if (!confirm("⚠️ This will clear all chores, checkboxes, and custom descriptions. Are you sure?")) return;
+      
+      localStorage.clear();
+      render();
+      document.getElementById("kidName").value = "";
+      showToast("🗑️ Everything has been cleared!", "info");
+    }
+
+    // ===== Export/Import =====
+    function exportSchedule() {
+      const data = {
+        version: "1.0",
+        kidName: localStorage.getItem('kidName') || "",
+        chores: getChores(),
+        schedule: getSchedule(),
+        descriptions: getDescriptionOverrides(),
+        exportDate: new Date().toISOString()
+      };
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `chore-schedule-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      showToast("📤 Schedule exported successfully!", "success");
+    }
+
+    function importSchedule(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          
+          if (!data.version || !data.chores) {
+            throw new Error("Invalid schedule file");
+          }
+
+          if (data.kidName) localStorage.setItem('kidName', data.kidName);
+          if (data.chores) setChores(data.chores);
+          if (data.schedule) setSchedule(data.schedule);
+          if (data.descriptions) setDescriptionOverrides(data.descriptions);
+
+          document.getElementById("kidName").value = data.kidName || "";
+          render();
+          showToast("📥 Schedule imported successfully!", "success");
+        } catch (error) {
+          showToast("❌ Error importing schedule. Please check the file.", "error");
+          console.error(error);
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    // ===== PDF Generation =====
+    function saveSchedule() {
+      const kidName = document.getElementById("kidName").value || "Super Kid";
+      autoSaveSchedule();
       localStorage.setItem("kidName", kidName);
 
+      const schedule = getSchedule();
       buildPosterAndGeneratePDF(kidName, schedule);
     }
 
@@ -555,16 +1039,13 @@
       DAYS.forEach(d => (dayChores[d] = []));
 
       Object.keys(schedule).forEach(chore => {
-        const days = schedule[chore] || [];
-        days.forEach(day => {
-          if (!dayChores[day].includes(chore)) {
-            dayChores[day].push(chore);
-          }
+        (schedule[chore] || []).forEach(day => {
+          if (!dayChores[day].includes(chore)) dayChores[day].push(chore);
         });
       });
 
       document.getElementById("posterHeroName").textContent = `${kidName}'s Weekly Chore Schedule`;
-      document.getElementById("posterFooter").textContent = "";
+      document.getElementById("posterFooter").textContent = `Created on ${new Date().toLocaleDateString()}`;
 
       const topDays = ["Mon","Tue","Wed","Thu"];
       const bottomDays = ["Fri","Sat","Sun"];
@@ -586,7 +1067,12 @@
 
         if (choresForDay.length === 0) {
           card.classList.add("free");
-          card.innerHTML = `<div class="day-name">${day}</div><div style="margin-top:25px;font-size:18px;">Free Day! 🎉</div>`;
+          const freeText = document.createElement("div");
+          freeText.style.marginTop = "20px";
+          freeText.style.fontSize = "20px";
+          freeText.style.fontWeight = "bold";
+          freeText.textContent = "Free Day! 🎉";
+          card.appendChild(freeText);
         } else {
           const ul = document.createElement("ul");
           ul.className = "chore-list";
@@ -603,27 +1089,58 @@
       topDays.forEach(d => posterTopRow.appendChild(createDayCard(d)));
       bottomDays.forEach(d => posterBottomRow.appendChild(createDayCard(d)));
 
-      setTimeout(generatePDFfromPoster, 80);
+      setTimeout(generatePDFfromPoster, 100);
     }
 
     async function generatePDFfromPoster() {
-      const posterWrapper = document.getElementById("posterWrapper");
-      const poster = document.getElementById("poster");
-      posterWrapper.style.visibility = "visible";
+      showLoading();
+      const saveBtn = document.getElementById('saveBtn');
+      saveBtn.disabled = true;
 
-      const canvas = await html2canvas(poster, { scale: 2, useCORS: true, backgroundColor: null });
-      const imgData = canvas.toDataURL("image/png");
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF("landscape", "pt", "a4");
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
+      try {
+        const posterWrapper = document.getElementById("posterWrapper");
+        const poster = document.getElementById("poster");
+        posterWrapper.style.visibility = "visible";
 
-      pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pageHeight);
-      pdf.save("SuperKidSchedule.pdf");
-      posterWrapper.style.visibility = "hidden";
+        const canvas = await html2canvas(poster, {
+          scale: 3,
+          useCORS: true,
+          backgroundColor: '#ffeaa7',
+          logging: false,
+          width: 1200,
+          height: 900
+        });
+
+        const imgData = canvas.toDataURL("image/png");
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF("landscape", "pt", "a4");
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pageHeight);
+        pdf.save("SuperKidSchedule.pdf");
+
+        posterWrapper.style.visibility = "hidden";
+        showToast("🎉 PDF downloaded successfully!", "success");
+      } catch (error) {
+        console.error(error);
+        showToast("❌ Error generating PDF. Please try again.", "error");
+      } finally {
+        hideLoading();
+        saveBtn.disabled = false;
+      }
     }
 
-    renderTable();
+    // ===== Keyboard Support =====
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.target.id === 'newChore') {
+        addChore();
+      }
+    });
+
+    // ===== Initialize =====
+    render();
     document.getElementById("kidName").value = localStorage.getItem("kidName") || "";
   </script>
 </body>
