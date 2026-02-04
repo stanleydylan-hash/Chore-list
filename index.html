@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -204,6 +203,91 @@
     select {
       cursor: pointer;
       background: white;
+    }
+
+    /* Image Upload Area */
+    .image-upload-area {
+      margin-top: 10px;
+    }
+
+    .image-preview {
+      border: 3px dashed #f2d36b;
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: #fffaf0;
+      min-height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .image-preview:hover {
+      border-color: #ff9c00;
+      background: #fff4e6;
+    }
+
+    .image-preview.drag-over {
+      border-color: #ff9c00;
+      background: #ffe8cc;
+      transform: scale(1.02);
+    }
+
+    .image-preview img {
+      max-width: 200px;
+      max-height: 200px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .image-preview p {
+      color: #666;
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    .remove-image-btn {
+      background: #ff6b6b;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      margin-top: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    /* Monthly calendar specific styles */
+    .monthly-header {
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #ff9c00;
+      margin-bottom: 15px;
+      padding: 10px;
+      background: linear-gradient(135deg, #ffec9f, #ffd96b);
+      border-radius: 12px;
+    }
+
+    table.monthly-view {
+      font-size: 0.85rem;
+    }
+
+    table.monthly-view th {
+      font-size: 0.75rem;
+      padding: 6px 4px;
+    }
+
+    table.monthly-view td {
+      padding: 4px;
+      font-size: 0.75rem;
+    }
+
+    table.monthly-view td.chore {
+      font-size: 0.8rem;
     }
 
     /* Chore Cell Components */
@@ -609,6 +693,16 @@
     </div>
 
     <div class="form-section">
+      <label><b>Add Hero Photo (optional):</b></label>
+      <div id="imageUploadArea" class="image-upload-area">
+        <input type="file" id="heroImage" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+        <div id="imagePreview" class="image-preview">
+          <p>📸 Drag & drop an image here or click to upload</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
       <label><b>Weekly Reward:</b></label>
       <input id="weeklyReward" type="text" placeholder="e.g. Ice cream trip, movie night, extra screen time" aria-label="Enter weekly reward" onchange="saveReward()">
     </div>
@@ -623,6 +717,7 @@
 
     <!-- Desktop Table View -->
     <div class="desktop-table">
+      <div id="monthlyHeader" class="monthly-header" style="display: none;"></div>
       <table id="scheduleTable">
         <thead>
           <tr id="scheduleHeader">
@@ -664,6 +759,7 @@
   <div id="posterWrapper">
     <div id="poster">
       <h1 class="poster-title">🌟 SUPER KID CHORE QUEST 🌟</h1>
+      <div class="poster-subtitle" id="posterSubtitle"></div>
       <h2 class="poster-subtitle" id="posterHeroName"></h2>
 
       <div class="poster-board">
@@ -678,7 +774,9 @@
   <script>
     let DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
     const WEEKLY_DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-    const MONTHLY_WEEKS = ["Week 1", "Week 2", "Week 3", "Week 4"];
+    
+    // Generate days 1-31 for monthly view
+    const MONTHLY_DAYS = Array.from({length: 31}, (_, i) => (i + 1).toString());
 
     const DEFAULT_CHORES = [
       "🛏 Bed Boss",
@@ -772,6 +870,77 @@
       return "Do this chore carefully, then check the box when you're done. You've got this!";
     }
 
+    // ===== Image Upload Handling =====
+    function handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const imageData = e.target.result;
+          localStorage.setItem('heroImage', imageData);
+          displayImagePreview(imageData);
+          showToast("📸 Image uploaded successfully!", "success");
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function displayImagePreview(imageData) {
+      const preview = document.getElementById('imagePreview');
+      if (imageData) {
+        preview.innerHTML = `
+          <div>
+            <img src="${imageData}" alt="Hero photo">
+            <br>
+            <button class="remove-image-btn" onclick="removeImage()">Remove Image</button>
+          </div>
+        `;
+      } else {
+        preview.innerHTML = '<p>📸 Drag & drop an image here or click to upload</p>';
+      }
+    }
+
+    function removeImage() {
+      localStorage.removeItem('heroImage');
+      displayImagePreview(null);
+      document.getElementById('heroImage').value = '';
+      showToast("🗑️ Image removed", "info");
+    }
+
+    // Drag and drop functionality
+    const imageUploadArea = document.getElementById('imageUploadArea');
+    const imagePreview = document.getElementById('imagePreview');
+
+    imagePreview.addEventListener('click', () => {
+      document.getElementById('heroImage').click();
+    });
+
+    imagePreview.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      imagePreview.classList.add('drag-over');
+    });
+
+    imagePreview.addEventListener('dragleave', () => {
+      imagePreview.classList.remove('drag-over');
+    });
+
+    imagePreview.addEventListener('drop', (e) => {
+      e.preventDefault();
+      imagePreview.classList.remove('drag-over');
+      
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const imageData = event.target.result;
+          localStorage.setItem('heroImage', imageData);
+          displayImagePreview(imageData);
+          showToast("📸 Image uploaded successfully!", "success");
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
     // ===== Schedule Type Management =====
     function saveReward() {
       const reward = document.getElementById('weeklyReward').value;
@@ -782,10 +951,23 @@
       const scheduleType = document.getElementById('scheduleType').value;
       localStorage.setItem('scheduleType', scheduleType);
       
+      const table = document.getElementById('scheduleTable');
+      const monthlyHeader = document.getElementById('monthlyHeader');
+      
       if (scheduleType === 'monthly') {
-        DAYS = MONTHLY_WEEKS;
+        DAYS = MONTHLY_DAYS;
+        table.classList.add('monthly-view');
+        monthlyHeader.style.display = 'block';
+        
+        // Get current month and year
+        const now = new Date();
+        const monthName = now.toLocaleString('default', { month: 'long' });
+        const year = now.getFullYear();
+        monthlyHeader.textContent = `${monthName} ${year}`;
       } else {
         DAYS = WEEKLY_DAYS;
+        table.classList.remove('monthly-view');
+        monthlyHeader.style.display = 'none';
       }
       
       updateTableHeaders();
@@ -1031,6 +1213,7 @@
         kidName: localStorage.getItem('kidName') || "",
         weeklyReward: localStorage.getItem('weeklyReward') || "",
         scheduleType: localStorage.getItem('scheduleType') || "weekly",
+        heroImage: localStorage.getItem('heroImage') || "",
         chores: getChores(),
         schedule: getSchedule(),
         descriptions: getDescriptionOverrides(),
@@ -1064,6 +1247,7 @@
           if (data.kidName) localStorage.setItem('kidName', data.kidName);
           if (data.weeklyReward) localStorage.setItem('weeklyReward', data.weeklyReward);
           if (data.scheduleType) localStorage.setItem('scheduleType', data.scheduleType);
+          if (data.heroImage) localStorage.setItem('heroImage', data.heroImage);
           if (data.chores) setChores(data.chores);
           if (data.schedule) setSchedule(data.schedule);
           if (data.descriptions) setDescriptionOverrides(data.descriptions);
@@ -1072,11 +1256,24 @@
           document.getElementById("weeklyReward").value = data.weeklyReward || "";
           document.getElementById("scheduleType").value = data.scheduleType || "weekly";
           
+          // Display imported image
+          if (data.heroImage) {
+            displayImagePreview(data.heroImage);
+          }
+          
           // Update DAYS and headers based on imported schedule type
           if (data.scheduleType === 'monthly') {
-            DAYS = MONTHLY_WEEKS;
+            DAYS = MONTHLY_DAYS;
+            document.getElementById('scheduleTable').classList.add('monthly-view');
+            document.getElementById('monthlyHeader').style.display = 'block';
+            const now = new Date();
+            const monthName = now.toLocaleString('default', { month: 'long' });
+            const year = now.getFullYear();
+            document.getElementById('monthlyHeader').textContent = `${monthName} ${year}`;
           } else {
             DAYS = WEEKLY_DAYS;
+            document.getElementById('scheduleTable').classList.remove('monthly-view');
+            document.getElementById('monthlyHeader').style.display = 'none';
           }
           updateTableHeaders();
           
@@ -1104,6 +1301,7 @@
     function buildPosterAndGeneratePDF(kidName, schedule) {
       const scheduleType = document.getElementById('scheduleType').value;
       const weeklyReward = document.getElementById('weeklyReward').value || "Special treat!";
+      const heroImage = localStorage.getItem('heroImage');
       
       const dayChores = {};
       DAYS.forEach(d => (dayChores[d] = []));
@@ -1114,58 +1312,128 @@
         });
       });
 
-      const scheduleTypeLabel = scheduleType === 'monthly' ? 'Monthly' : 'Weekly';
-      document.getElementById("posterHeroName").textContent = `${kidName}'s ${scheduleTypeLabel} Chore Schedule`;
-      document.getElementById("posterFooter").textContent = `Reward: ${weeklyReward} | Created on ${new Date().toLocaleDateString()}`;
-
       const posterTopRow = document.getElementById("posterTopRow");
       const posterBottomRow = document.getElementById("posterBottomRow");
       posterTopRow.innerHTML = "";
       posterBottomRow.innerHTML = "";
 
-      function createDayCard(day) {
-        const card = document.createElement("div");
-        card.className = "day-card";
-
-        const title = document.createElement("div");
-        title.className = "day-name";
-        title.textContent = day;
-        card.appendChild(title);
-
-        const choresForDay = dayChores[day] || [];
-
-        if (choresForDay.length === 0) {
-          card.classList.add("free");
-          const freeText = document.createElement("div");
-          freeText.style.marginTop = "20px";
-          freeText.style.fontSize = "20px";
-          freeText.style.fontWeight = "bold";
-          freeText.textContent = "Free Day! 🎉";
-          card.appendChild(freeText);
-        } else {
-          const ul = document.createElement("ul");
-          ul.className = "chore-list";
-          choresForDay.forEach(ch => {
-            const li = document.createElement("li");
-            li.textContent = ch;
-            ul.appendChild(li);
-          });
-          card.appendChild(ul);
-        }
-        return card;
-      }
-
-      // For monthly view, show all 4 weeks in top row
       if (scheduleType === 'monthly') {
-        posterTopRow.style.gridTemplateColumns = 'repeat(4, 1fr)';
+        // Monthly calendar view
+        const now = new Date();
+        const monthName = now.toLocaleString('default', { month: 'long' });
+        const year = now.getFullYear();
+        
+        document.getElementById("posterHeroName").textContent = `${kidName}'s Chore Calendar`;
+        
+        // Add month/year and optional image
+        let subtitleHTML = `${monthName} ${year}`;
+        document.getElementById("posterSubtitle").innerHTML = subtitleHTML;
+        
+        // Add image if available
+        if (heroImage) {
+          const imgDiv = document.createElement('div');
+          imgDiv.style.textAlign = 'center';
+          imgDiv.style.marginBottom = '15px';
+          imgDiv.innerHTML = `<img src="${heroImage}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #ff9c00; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">`;
+          document.getElementById("poster").insertBefore(imgDiv, document.querySelector('.poster-board'));
+        }
+        
+        document.getElementById("posterFooter").textContent = `Reward: ${weeklyReward}`;
+
+        // Show all days in a grid (7 columns for calendar style)
+        posterTopRow.style.display = 'grid';
+        posterTopRow.style.gridTemplateColumns = 'repeat(7, 1fr)';
+        posterTopRow.style.gap = '8px';
         posterBottomRow.style.display = 'none';
-        DAYS.forEach(d => posterTopRow.appendChild(createDayCard(d)));
+        
+        // Create day cards for all 31 days
+        DAYS.forEach(day => {
+          const card = document.createElement("div");
+          card.className = "day-card monthly-day-card";
+          card.style.minHeight = '80px';
+          card.style.fontSize = '11px';
+          card.style.padding = '8px';
+
+          const title = document.createElement("div");
+          title.className = "day-name";
+          title.style.fontSize = '14px';
+          title.style.marginBottom = '4px';
+          title.textContent = day;
+          card.appendChild(title);
+
+          const choresForDay = dayChores[day] || [];
+
+          if (choresForDay.length === 0) {
+            card.style.opacity = '0.5';
+          } else {
+            const ul = document.createElement("ul");
+            ul.className = "chore-list";
+            ul.style.fontSize = '10px';
+            ul.style.margin = '0';
+            ul.style.padding = '0 0 0 12px';
+            choresForDay.forEach(ch => {
+              const li = document.createElement("li");
+              li.textContent = ch;
+              li.style.margin = '2px 0';
+              ul.appendChild(li);
+            });
+            card.appendChild(ul);
+          }
+          posterTopRow.appendChild(card);
+        });
       } else {
-        // For weekly view, show Mon-Thu on top, Fri-Sun on bottom
+        // Weekly view
+        document.getElementById("posterHeroName").textContent = `${kidName}'s Weekly Chore Schedule`;
+        
+        let subtitleHTML = '';
+        if (heroImage) {
+          subtitleHTML = `<img src="${heroImage}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid #ff9c00; box-shadow: 0 4px 12px rgba(0,0,0,0.2); margin-bottom: 10px;">`;
+        }
+        document.getElementById("posterSubtitle").innerHTML = subtitleHTML;
+        
+        document.getElementById("posterFooter").textContent = `Reward: ${weeklyReward} | Created on ${new Date().toLocaleDateString()}`;
+
+        posterTopRow.style.display = 'grid';
         posterTopRow.style.gridTemplateColumns = 'repeat(4, 1fr)';
+        posterTopRow.style.gap = '16px';
         posterBottomRow.style.display = 'grid';
-        const topDays = DAYS.slice(0, 4); // Mon-Thu
-        const bottomDays = DAYS.slice(4); // Fri-Sun
+        posterBottomRow.style.gridTemplateColumns = 'repeat(3, 1fr)';
+        posterBottomRow.style.gap = '16px';
+
+        function createDayCard(day) {
+          const card = document.createElement("div");
+          card.className = "day-card";
+
+          const title = document.createElement("div");
+          title.className = "day-name";
+          title.textContent = day;
+          card.appendChild(title);
+
+          const choresForDay = dayChores[day] || [];
+
+          if (choresForDay.length === 0) {
+            card.classList.add("free");
+            const freeText = document.createElement("div");
+            freeText.style.marginTop = "20px";
+            freeText.style.fontSize = "20px";
+            freeText.style.fontWeight = "bold";
+            freeText.textContent = "Free Day! 🎉";
+            card.appendChild(freeText);
+          } else {
+            const ul = document.createElement("ul");
+            ul.className = "chore-list";
+            choresForDay.forEach(ch => {
+              const li = document.createElement("li");
+              li.textContent = ch;
+              ul.appendChild(li);
+            });
+            card.appendChild(ul);
+          }
+          return card;
+        }
+
+        const topDays = DAYS.slice(0, 4);
+        const bottomDays = DAYS.slice(4);
         topDays.forEach(d => posterTopRow.appendChild(createDayCard(d)));
         bottomDays.forEach(d => posterBottomRow.appendChild(createDayCard(d)));
       }
@@ -1203,6 +1471,15 @@
         pdf.save("SuperKidSchedule.pdf");
 
         posterWrapper.style.visibility = "hidden";
+        
+        // Clean up any dynamically added image elements in poster
+        const dynamicImgs = poster.querySelectorAll('div > img');
+        dynamicImgs.forEach(img => {
+          if (img.parentElement && img.parentElement.parentElement === poster) {
+            img.parentElement.remove();
+          }
+        });
+        
         showToast("🎉 PDF downloaded successfully!", "success");
         
         // Reset the schedule after successful PDF save
@@ -1211,12 +1488,14 @@
             const kidName = document.getElementById("kidName").value;
             const reward = document.getElementById("weeklyReward").value;
             const scheduleType = document.getElementById("scheduleType").value;
+            const heroImage = localStorage.getItem("heroImage");
             
             localStorage.clear();
             
-            // Restore name, reward, and schedule type
+            // Restore name, reward, image, and schedule type
             if (kidName) localStorage.setItem("kidName", kidName);
             if (reward) localStorage.setItem("weeklyReward", reward);
+            if (heroImage) localStorage.setItem("heroImage", heroImage);
             localStorage.setItem("scheduleType", scheduleType);
             
             render();
@@ -1242,15 +1521,34 @@
     // ===== Initialize =====
     const savedScheduleType = localStorage.getItem("scheduleType") || "weekly";
     document.getElementById("scheduleType").value = savedScheduleType;
+    
+    const table = document.getElementById('scheduleTable');
+    const monthlyHeader = document.getElementById('monthlyHeader');
+    
     if (savedScheduleType === 'monthly') {
-      DAYS = MONTHLY_WEEKS;
+      DAYS = MONTHLY_DAYS;
+      table.classList.add('monthly-view');
+      monthlyHeader.style.display = 'block';
+      const now = new Date();
+      const monthName = now.toLocaleString('default', { month: 'long' });
+      const year = now.getFullYear();
+      monthlyHeader.textContent = `${monthName} ${year}`;
     } else {
       DAYS = WEEKLY_DAYS;
+      table.classList.remove('monthly-view');
+      monthlyHeader.style.display = 'none';
     }
+    
     updateTableHeaders();
     render();
     document.getElementById("kidName").value = localStorage.getItem("kidName") || "";
     document.getElementById("weeklyReward").value = localStorage.getItem("weeklyReward") || "";
+    
+    // Load saved image if exists
+    const savedImage = localStorage.getItem("heroImage");
+    if (savedImage) {
+      displayImagePreview(savedImage);
+    }
   </script>
 </body>
 </html>
