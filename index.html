@@ -1,5 +1,4 @@
 
-   
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -186,7 +185,8 @@
     }
 
     /* Input Fields */
-    input[type="text"] {
+    input[type="text"],
+    select {
       padding: 10px 12px;
       border: 2px solid #f2d36b;
       border-radius: 8px;
@@ -195,9 +195,15 @@
       transition: border-color 0.2s;
     }
 
-    input[type="text"]:focus {
+    input[type="text"]:focus,
+    select:focus {
       outline: none;
       border-color: #ff9c00;
+    }
+
+    select {
+      cursor: pointer;
+      background: white;
     }
 
     /* Chore Cell Components */
@@ -602,11 +608,24 @@
       <input id="kidName" type="text" placeholder="e.g. Jake the Super Kid" aria-label="Enter child's name">
     </div>
 
+    <div class="form-section">
+      <label><b>Weekly Reward:</b></label>
+      <input id="weeklyReward" type="text" placeholder="e.g. Ice cream trip, movie night, extra screen time" aria-label="Enter weekly reward" onchange="saveReward()">
+    </div>
+
+    <div class="form-section">
+      <label><b>Schedule Type:</b></label>
+      <select id="scheduleType" onchange="changeScheduleType()" aria-label="Select schedule type">
+        <option value="weekly">Weekly Schedule</option>
+        <option value="monthly">Monthly Schedule</option>
+      </select>
+    </div>
+
     <!-- Desktop Table View -->
     <div class="desktop-table">
       <table id="scheduleTable">
         <thead>
-          <tr>
+          <tr id="scheduleHeader">
             <th>Chore</th>
             <th>Mon</th>
             <th>Tue</th>
@@ -657,7 +676,9 @@
   </div>
 
   <script>
-    const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+    let DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+    const WEEKLY_DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+    const MONTHLY_WEEKS = ["Week 1", "Week 2", "Week 3", "Week 4"];
 
     const DEFAULT_CHORES = [
       "🛏 Bed Boss",
@@ -749,6 +770,37 @@
       if (overrides[chore] && overrides[chore].trim()) return overrides[chore].trim();
       if (DEFAULT_DESCRIPTIONS[chore]) return DEFAULT_DESCRIPTIONS[chore];
       return "Do this chore carefully, then check the box when you're done. You've got this!";
+    }
+
+    // ===== Schedule Type Management =====
+    function saveReward() {
+      const reward = document.getElementById('weeklyReward').value;
+      localStorage.setItem('weeklyReward', reward);
+    }
+
+    function changeScheduleType() {
+      const scheduleType = document.getElementById('scheduleType').value;
+      localStorage.setItem('scheduleType', scheduleType);
+      
+      if (scheduleType === 'monthly') {
+        DAYS = MONTHLY_WEEKS;
+      } else {
+        DAYS = WEEKLY_DAYS;
+      }
+      
+      updateTableHeaders();
+      render();
+    }
+
+    function updateTableHeaders() {
+      const headerRow = document.getElementById('scheduleHeader');
+      headerRow.innerHTML = '<th>Chore</th>';
+      
+      DAYS.forEach(day => {
+        const th = document.createElement('th');
+        th.textContent = day;
+        headerRow.appendChild(th);
+      });
     }
 
     // ===== Render Functions =====
@@ -977,6 +1029,8 @@
       const data = {
         version: "1.0",
         kidName: localStorage.getItem('kidName') || "",
+        weeklyReward: localStorage.getItem('weeklyReward') || "",
+        scheduleType: localStorage.getItem('scheduleType') || "weekly",
         chores: getChores(),
         schedule: getSchedule(),
         descriptions: getDescriptionOverrides(),
@@ -1008,11 +1062,24 @@
           }
 
           if (data.kidName) localStorage.setItem('kidName', data.kidName);
+          if (data.weeklyReward) localStorage.setItem('weeklyReward', data.weeklyReward);
+          if (data.scheduleType) localStorage.setItem('scheduleType', data.scheduleType);
           if (data.chores) setChores(data.chores);
           if (data.schedule) setSchedule(data.schedule);
           if (data.descriptions) setDescriptionOverrides(data.descriptions);
 
           document.getElementById("kidName").value = data.kidName || "";
+          document.getElementById("weeklyReward").value = data.weeklyReward || "";
+          document.getElementById("scheduleType").value = data.scheduleType || "weekly";
+          
+          // Update DAYS and headers based on imported schedule type
+          if (data.scheduleType === 'monthly') {
+            DAYS = MONTHLY_WEEKS;
+          } else {
+            DAYS = WEEKLY_DAYS;
+          }
+          updateTableHeaders();
+          
           render();
           showToast("📥 Schedule imported successfully!", "success");
         } catch (error) {
@@ -1035,6 +1102,9 @@
     }
 
     function buildPosterAndGeneratePDF(kidName, schedule) {
+      const scheduleType = document.getElementById('scheduleType').value;
+      const weeklyReward = document.getElementById('weeklyReward').value || "Special treat!";
+      
       const dayChores = {};
       DAYS.forEach(d => (dayChores[d] = []));
 
@@ -1044,11 +1114,10 @@
         });
       });
 
-      document.getElementById("posterHeroName").textContent = `${kidName}'s Weekly Chore Schedule`;
-      document.getElementById("posterFooter").textContent = `Created on ${new Date().toLocaleDateString()}`;
+      const scheduleTypeLabel = scheduleType === 'monthly' ? 'Monthly' : 'Weekly';
+      document.getElementById("posterHeroName").textContent = `${kidName}'s ${scheduleTypeLabel} Chore Schedule`;
+      document.getElementById("posterFooter").textContent = `Reward: ${weeklyReward} | Created on ${new Date().toLocaleDateString()}`;
 
-      const topDays = ["Mon","Tue","Wed","Thu"];
-      const bottomDays = ["Fri","Sat","Sun"];
       const posterTopRow = document.getElementById("posterTopRow");
       const posterBottomRow = document.getElementById("posterBottomRow");
       posterTopRow.innerHTML = "";
@@ -1086,8 +1155,20 @@
         return card;
       }
 
-      topDays.forEach(d => posterTopRow.appendChild(createDayCard(d)));
-      bottomDays.forEach(d => posterBottomRow.appendChild(createDayCard(d)));
+      // For monthly view, show all 4 weeks in top row
+      if (scheduleType === 'monthly') {
+        posterTopRow.style.gridTemplateColumns = 'repeat(4, 1fr)';
+        posterBottomRow.style.display = 'none';
+        DAYS.forEach(d => posterTopRow.appendChild(createDayCard(d)));
+      } else {
+        // For weekly view, show Mon-Thu on top, Fri-Sun on bottom
+        posterTopRow.style.gridTemplateColumns = 'repeat(4, 1fr)';
+        posterBottomRow.style.display = 'grid';
+        const topDays = DAYS.slice(0, 4); // Mon-Thu
+        const bottomDays = DAYS.slice(4); // Fri-Sun
+        topDays.forEach(d => posterTopRow.appendChild(createDayCard(d)));
+        bottomDays.forEach(d => posterBottomRow.appendChild(createDayCard(d)));
+      }
 
       setTimeout(generatePDFfromPoster, 100);
     }
@@ -1123,6 +1204,25 @@
 
         posterWrapper.style.visibility = "hidden";
         showToast("🎉 PDF downloaded successfully!", "success");
+        
+        // Reset the schedule after successful PDF save
+        setTimeout(() => {
+          if (confirm("✅ PDF saved! Would you like to clear the schedule and start fresh?")) {
+            const kidName = document.getElementById("kidName").value;
+            const reward = document.getElementById("weeklyReward").value;
+            const scheduleType = document.getElementById("scheduleType").value;
+            
+            localStorage.clear();
+            
+            // Restore name, reward, and schedule type
+            if (kidName) localStorage.setItem("kidName", kidName);
+            if (reward) localStorage.setItem("weeklyReward", reward);
+            localStorage.setItem("scheduleType", scheduleType);
+            
+            render();
+            showToast("🔄 Schedule cleared! Ready for next week/month.", "info");
+          }
+        }, 500);
       } catch (error) {
         console.error(error);
         showToast("❌ Error generating PDF. Please try again.", "error");
@@ -1140,8 +1240,17 @@
     });
 
     // ===== Initialize =====
+    const savedScheduleType = localStorage.getItem("scheduleType") || "weekly";
+    document.getElementById("scheduleType").value = savedScheduleType;
+    if (savedScheduleType === 'monthly') {
+      DAYS = MONTHLY_WEEKS;
+    } else {
+      DAYS = WEEKLY_DAYS;
+    }
+    updateTableHeaders();
     render();
     document.getElementById("kidName").value = localStorage.getItem("kidName") || "";
+    document.getElementById("weeklyReward").value = localStorage.getItem("weeklyReward") || "";
   </script>
 </body>
 </html>
