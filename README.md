@@ -4,3 +4,5 @@ Helps people just chores to what they need in their homeS
 
  API for backend:
  https://api.sizebud.com/docs#/
+
+ app name is chore-chopper
