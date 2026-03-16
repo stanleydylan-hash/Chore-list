@@ -645,6 +645,113 @@
       }
     }
 
+    /* Auth Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 20px;
+      padding: 35px 30px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+      position: relative;
+    }
+
+    .modal h2 {
+      text-align: center;
+      color: #ff9c00;
+      font-size: 1.6rem;
+      margin-bottom: 20px;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 14px;
+      right: 18px;
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+      color: #aaa;
+      padding: 0;
+      box-shadow: none;
+    }
+
+    .modal-close:hover {
+      color: #ff6b6b;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .modal .field {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 15px;
+      gap: 6px;
+    }
+
+    .modal .field label {
+      font-weight: 700;
+      color: #444;
+      font-size: 0.95rem;
+    }
+
+    .modal .field input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #f2d36b;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: inherit;
+    }
+
+    .modal .field input:focus {
+      outline: none;
+      border-color: #ff9c00;
+    }
+
+    .modal .submit-btn {
+      width: 100%;
+      margin: 10px 0 0 0;
+      padding: 13px;
+      font-size: 1.05rem;
+    }
+
+    .modal .switch-link {
+      text-align: center;
+      margin-top: 14px;
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    .modal .switch-link a {
+      color: #ff9c00;
+      cursor: pointer;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .modal .switch-link a:hover {
+      text-decoration: underline;
+    }
+
+    /* Account button in header */
+    .account-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 10px;
+    }
+
     /* Print Styles */
     @media print {
       body {
@@ -683,7 +790,59 @@
 <body>
   <div id="toastContainer" class="toast-container"></div>
 
+  <!-- Auth Modal -->
+  <div id="authModal" class="modal-overlay" style="display:none;">
+    <div class="modal">
+      <button class="modal-close" onclick="closeAuthModal()" aria-label="Close">✕</button>
+
+      <!-- Step 1: Register -->
+      <div id="registerStep">
+        <h2>👤 Create Account</h2>
+        <div class="field">
+          <label for="regEmail">Email</label>
+          <input type="email" id="regEmail" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="field">
+          <label for="regPassword">Password</label>
+          <input type="password" id="regPassword" placeholder="Create a password" autocomplete="new-password">
+        </div>
+        <div class="field">
+          <label for="regConfirm">Confirm Password</label>
+          <input type="password" id="regConfirm" placeholder="Repeat your password" autocomplete="new-password">
+        </div>
+        <button class="primary submit-btn" onclick="handleRegister()">Create Account</button>
+        <p class="switch-link">Already have an account? <a onclick="showLoginStep()">Sign in</a></p>
+      </div>
+
+      <!-- Step 2: Verify Email -->
+      <div id="verifyStep" style="display:none;">
+        <h2>📧 Verify Email</h2>
+        <p style="text-align:center; color:#666; margin-bottom:18px; font-size:0.95rem;">
+          We sent a verification code to <strong id="verifyEmailDisplay"></strong>
+        </p>
+        <div class="field">
+          <label for="verifyCode">Verification Code</label>
+          <input type="text" id="verifyCode" placeholder="Enter the code from your email" autocomplete="one-time-code">
+        </div>
+        <button class="primary submit-btn" onclick="handleVerify()">Verify & Continue</button>
+        <p class="switch-link"><a onclick="showRegisterStep()">← Back</a></p>
+      </div>
+
+      <!-- Step 3: Success -->
+      <div id="successStep" style="display:none;">
+        <h2>🎉 You're In!</h2>
+        <p style="text-align:center; color:#444; margin-bottom:20px;">
+          Your account is verified and ready to go!
+        </p>
+        <button class="success submit-btn" onclick="closeAuthModal()">Start Building!</button>
+      </div>
+    </div>
+  </div>
+
   <div class="container">
+    <div class="account-bar">
+      <button id="accountBtn" class="outline" onclick="openAuthModal()" style="margin:0; padding:8px 16px; font-size:0.9rem;">👤 Create Account</button>
+    </div>
     <h1>🌟 SUPER KID CHORE QUEST 🌟</h1>
     <h2>Build Your Weekly Schedule</h2>
 
@@ -1509,6 +1668,120 @@
         hideLoading();
         saveBtn.disabled = false;
       }
+    }
+
+    // ===== Auth =====
+    const API_BASE = "https://api.sizebud.com";
+    const APP_NAME = "chore-chopper";
+
+    function openAuthModal() {
+      showRegisterStep();
+      document.getElementById("authModal").style.display = "flex";
+    }
+
+    function closeAuthModal() {
+      document.getElementById("authModal").style.display = "none";
+    }
+
+    function showRegisterStep() {
+      document.getElementById("registerStep").style.display = "block";
+      document.getElementById("verifyStep").style.display = "none";
+      document.getElementById("successStep").style.display = "none";
+    }
+
+    function showLoginStep() {
+      // Placeholder — can expand to a login flow later
+      showToast("Login coming soon!", "info");
+    }
+
+    async function handleRegister() {
+      const email = document.getElementById("regEmail").value.trim();
+      const password = document.getElementById("regPassword").value;
+      const confirm = document.getElementById("regConfirm").value;
+
+      if (!email || !password || !confirm) {
+        showToast("Please fill in all fields.", "error");
+        return;
+      }
+
+      if (password !== confirm) {
+        showToast("Passwords don't match.", "error");
+        return;
+      }
+
+      if (password.length < 6) {
+        showToast("Password must be at least 6 characters.", "error");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, app_name: APP_NAME })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          showToast(data.detail || "Registration failed. Please try again.", "error");
+          return;
+        }
+
+        document.getElementById("verifyEmailDisplay").textContent = email;
+        document.getElementById("registerStep").style.display = "none";
+        document.getElementById("verifyStep").style.display = "block";
+        showToast("📧 Check your email for a verification code!", "info");
+      } catch (err) {
+        showToast("Network error. Please check your connection.", "error");
+        console.error(err);
+      }
+    }
+
+    async function handleVerify() {
+      const email = document.getElementById("regEmail").value.trim();
+      const code = document.getElementById("verifyCode").value.trim();
+
+      if (!code) {
+        showToast("Please enter the verification code.", "error");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/verify_email`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, code, app_name: APP_NAME })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          showToast(data.detail || "Verification failed. Check your code.", "error");
+          return;
+        }
+
+        document.getElementById("verifyStep").style.display = "none";
+        document.getElementById("successStep").style.display = "block";
+        document.getElementById("accountBtn").textContent = `✅ ${email}`;
+        document.getElementById("accountBtn").disabled = true;
+        localStorage.setItem("accountEmail", email);
+      } catch (err) {
+        showToast("Network error. Please check your connection.", "error");
+        console.error(err);
+      }
+    }
+
+    // Close modal on overlay click
+    document.getElementById("authModal").addEventListener("click", (e) => {
+      if (e.target === document.getElementById("authModal")) closeAuthModal();
+    });
+
+    // Restore account state on load
+    const savedAccountEmail = localStorage.getItem("accountEmail");
+    if (savedAccountEmail) {
+      document.getElementById("accountBtn").textContent = `✅ ${savedAccountEmail}`;
+      document.getElementById("accountBtn").disabled = true;
     }
 
     // ===== Keyboard Support =====
