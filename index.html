@@ -3108,7 +3108,6 @@
         const res = await fetch(`${API_BASE}/update_object`, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          credentials: "include",
           body: formBody({
             app_name: APP_NAME,
             collection_name: "kid-sessions",
@@ -3117,7 +3116,12 @@
           })
         });
 
-        if (!res.ok) { showToast("Could not generate link. Make sure you're signed in.", "error"); return; }
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => ({}));
+          console.error("generate link error", res.status, errBody);
+          showToast(`Could not generate link (${res.status}). Please try again.`, "error");
+          return;
+        }
 
         const url = `${location.origin}${location.pathname}?kid=${kid.token}`;
         try {
