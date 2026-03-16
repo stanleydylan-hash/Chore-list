@@ -1265,6 +1265,109 @@
     .kid-standalone-error .err-icon { font-size: 3rem; margin-bottom: 12px; }
     .kid-standalone-error p { color: #666; font-size: 1rem; }
 
+    /* ===== Photo Verify Feature ===== */
+    .pv-complete-btn {
+      background: linear-gradient(135deg, #51cf66, #40c057);
+      color: white;
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      margin: 0;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      box-shadow: none;
+    }
+
+    .pv-complete-btn:hover {
+      transform: scale(1.06) !important;
+      box-shadow: 0 4px 12px rgba(64,192,87,0.45) !important;
+    }
+
+    .pv-modal { max-width: 480px; }
+
+    .pv-chore-display {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #ff9c00;
+      text-align: center;
+      background: #fff9ed;
+      border-radius: 10px;
+      padding: 8px 14px;
+      margin: 0 0 14px 0;
+    }
+
+    .pv-instructions {
+      text-align: center;
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+
+    .pv-upload-zone {
+      border: 3px dashed #f2d36b;
+      border-radius: 16px;
+      padding: 20px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #fffaf0;
+      margin-bottom: 16px;
+      min-height: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .pv-upload-zone:hover { border-color: #ff9c00; background: #fff4e6; }
+
+    .pv-upload-zone img {
+      max-width: 200px;
+      max-height: 160px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .pv-cam-icon { font-size: 2.5rem; margin-bottom: 8px; display: block; }
+    .pv-cam-label { color: #888; font-size: 0.9rem; }
+
+    .pv-checking-anim {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      font-size: 2rem;
+      margin: 20px 0;
+      animation: pvBounce 0.75s ease-in-out infinite alternate;
+    }
+
+    @keyframes pvBounce {
+      from { transform: translateY(0); }
+      to { transform: translateY(-14px); }
+    }
+
+    .pv-result-icon { font-size: 3.5rem; text-align: center; display: block; margin-bottom: 10px; }
+
+    .pv-result-msg {
+      text-align: center;
+      font-size: 1.05rem;
+      color: #444;
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    @keyframes confettiFall {
+      0%   { transform: translateY(0) rotate(0deg);    opacity: 1; }
+      80%  { opacity: 1; }
+      100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
     /* Print Styles */
     @media print {
       body {
@@ -1539,6 +1642,57 @@
       <span class="all-done-icon">🎉</span>
       <div class="all-done-text">Amazing job!</div>
       <div class="all-done-sub" id="kidModeAllDoneName"></div>
+    </div>
+  </div>
+
+  <!-- Photo Verify Modal -->
+  <div id="photoVerifyModal" class="modal-overlay" style="display:none;">
+    <div class="modal pv-modal">
+      <button class="modal-close" onclick="closePhotoVerifyModal()">✕</button>
+
+      <!-- Idle: show upload area -->
+      <div id="pvIdle">
+        <h2>📸 Prove it!</h2>
+        <div class="pv-chore-display" id="pvChoreName"></div>
+        <p class="pv-instructions">Take a photo or pick one from your camera roll showing the chore is done!</p>
+        <input type="file" id="pvFileInput" accept="image/*" capture="environment" style="display:none;" onchange="handlePVPhotoSelect(event)">
+        <div class="pv-upload-zone" onclick="document.getElementById('pvFileInput').click()">
+          <div id="pvPreviewInner">
+            <span class="pv-cam-icon">📷</span>
+            <div class="pv-cam-label">Tap to take or choose a photo</div>
+          </div>
+        </div>
+        <div class="button-group">
+          <button class="success" id="pvSubmitBtn" onclick="submitPhotoVerify()" disabled>✅ Check my work!</button>
+          <button class="outline" onclick="closePhotoVerifyModal()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Checking state -->
+      <div id="pvChecking" style="display:none; text-align:center; padding:20px 0;">
+        <h2 style="margin-bottom:10px;">🤔 Checking your work...</h2>
+        <div class="pv-checking-anim">⭐ ✨ 🌟</div>
+        <p style="color:#666;">Our AI helper is looking at your photo...</p>
+      </div>
+
+      <!-- Success state -->
+      <div id="pvSuccess" style="display:none; text-align:center; padding:10px 0;">
+        <h2 style="color:#40c057;">🎉 You did it!</h2>
+        <span class="pv-result-icon">🌟</span>
+        <div class="pv-result-msg" id="pvSuccessMsg"></div>
+        <button class="success submit-btn" onclick="confirmChoreComplete()">Collect my star! ⭐</button>
+      </div>
+
+      <!-- Fail state -->
+      <div id="pvFail" style="display:none; text-align:center; padding:10px 0;">
+        <h2 style="color:#ff9c00;">🤔 Not quite yet!</h2>
+        <span class="pv-result-icon">💪</span>
+        <div class="pv-result-msg" id="pvFailMsg"></div>
+        <div class="button-group">
+          <button class="primary" onclick="resetPVToIdle()">Try Again 📸</button>
+          <button class="outline" onclick="closePhotoVerifyModal()">Cancel</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -2849,11 +3003,12 @@
         const done = isChoreCompleted(kidId, chore);
         const row = document.createElement("div");
         row.className = "kid-chore-row" + (done ? " done" : "");
-        row.onclick = () => toggleCompletion(kidId, chore, todayChores);
-        row.innerHTML = `
-          <div class="kid-chore-check">${done ? "✓" : ""}</div>
-          <span class="kid-chore-text">${chore}</span>
-        `;
+        row.onclick = done
+          ? () => toggleCompletion(kidId, chore, todayChores)
+          : () => openPhotoVerifyKidMode(kidId, chore, todayChores);
+        row.innerHTML = done
+          ? `<div class="kid-chore-check">✓</div><span class="kid-chore-text">${chore}</span>`
+          : `<div class="kid-chore-check">📷</div><span class="kid-chore-text">${chore}</span><button class="pv-complete-btn">📸 Done!</button>`;
         container.appendChild(row);
       });
     }
@@ -3089,11 +3244,12 @@
         const done = doneChores.includes(chore);
         const row = document.createElement("div");
         row.className = "kid-chore-row" + (done ? " done" : "");
-        row.onclick = () => toggleKidSACompletion(token, chore, todayChores, saKey);
-        row.innerHTML = `
-          <div class="kid-chore-check">${done ? "✓" : ""}</div>
-          <span class="kid-chore-text">${chore}</span>
-        `;
+        row.onclick = done
+          ? () => toggleKidSACompletion(token, chore, todayChores, saKey)
+          : () => openPhotoVerifySA(token, chore, todayChores, saKey);
+        row.innerHTML = done
+          ? `<div class="kid-chore-check">✓</div><span class="kid-chore-text">${chore}</span>`
+          : `<div class="kid-chore-check">📷</div><span class="kid-chore-text">${chore}</span><button class="pv-complete-btn">📸 Done!</button>`;
         container.appendChild(row);
       });
     }
@@ -3153,6 +3309,200 @@
           syncEl.className = "kid-standalone-sync";
         }
       }, 800);
+    }
+
+    // ===== AI Photo Verify =====
+    let pvState = null;   // { context, kidId?, choreName, todayChores, token?, saKey? }
+    let pvBase64 = null;
+    let pvMediaType = null;
+
+    function openPhotoVerifyKidMode(kidId, choreName, todayChores) {
+      pvState = { context: 'kidmode', kidId, choreName, todayChores };
+      _openPVModal(choreName);
+    }
+
+    function openPhotoVerifySA(token, choreName, todayChores, saKey) {
+      pvState = { context: 'standalone', token, choreName, todayChores, saKey };
+      _openPVModal(choreName);
+    }
+
+    function _openPVModal(choreName) {
+      pvBase64 = null;
+      pvMediaType = null;
+      document.getElementById('pvChoreName').textContent = choreName;
+      document.getElementById('pvFileInput').value = '';
+      document.getElementById('pvSubmitBtn').disabled = true;
+      document.getElementById('pvPreviewInner').innerHTML =
+        `<span class="pv-cam-icon">📷</span><div class="pv-cam-label">Tap to take or choose a photo</div>`;
+      resetPVToIdle();
+      document.getElementById('photoVerifyModal').style.display = 'flex';
+    }
+
+    function closePhotoVerifyModal() {
+      document.getElementById('photoVerifyModal').style.display = 'none';
+      pvState = null;
+      pvBase64 = null;
+      pvMediaType = null;
+    }
+
+    function resetPVToIdle() {
+      document.getElementById('pvIdle').style.display = 'block';
+      document.getElementById('pvChecking').style.display = 'none';
+      document.getElementById('pvSuccess').style.display = 'none';
+      document.getElementById('pvFail').style.display = 'none';
+      // Clear previous photo when retrying
+      pvBase64 = null;
+      pvMediaType = null;
+      document.getElementById('pvFileInput').value = '';
+      document.getElementById('pvPreviewInner').innerHTML =
+        `<span class="pv-cam-icon">📷</span><div class="pv-cam-label">Tap to take or choose a photo</div>`;
+      document.getElementById('pvSubmitBtn').disabled = true;
+    }
+
+    function handlePVPhotoSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      pvMediaType = file.type || 'image/jpeg';
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target.result;
+        pvBase64 = dataUrl.split(',')[1];
+        document.getElementById('pvPreviewInner').innerHTML =
+          `<img src="${dataUrl}" alt="Chore photo"><p style="color:#666;font-size:0.85rem;margin-top:8px;">Looking good! Ready to check? ✨</p>`;
+        document.getElementById('pvSubmitBtn').disabled = false;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function getAnthropicKey() {
+      let key = localStorage.getItem('anthropicApiKey');
+      if (key) return key;
+      key = prompt(
+        '🤖 Enter your Anthropic API key to enable AI chore checking!\n\n' +
+        'Get a free key at anthropic.com → Console.\n' +
+        'Your key is stored only on this device and never shared.'
+      );
+      if (!key) return null;
+      key = key.trim();
+      if (!key.startsWith('sk-')) {
+        alert('That doesn\'t look like a valid API key (should start with "sk-"). Please try again.');
+        return null;
+      }
+      localStorage.setItem('anthropicApiKey', key);
+      return key;
+    }
+
+    async function submitPhotoVerify() {
+      if (!pvBase64) return;
+      const apiKey = await getAnthropicKey();
+      if (!apiKey) return;
+
+      document.getElementById('pvIdle').style.display = 'none';
+      document.getElementById('pvChecking').style.display = 'block';
+
+      try {
+        const choreName = pvState.choreName;
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json',
+            'anthropic-dangerous-direct-browser-access': 'true'
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 150,
+            messages: [{
+              role: 'user',
+              content: [
+                { type: 'image', source: { type: 'base64', media_type: pvMediaType, data: pvBase64 } },
+                { type: 'text', text: `Does this image show a completed version of this chore: "${choreName}"? Reply with YES or NO and one short friendly sentence explaining why, written for a child.` }
+              ]
+            }]
+          })
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          if (res.status === 401) {
+            localStorage.removeItem('anthropicApiKey');
+            throw new Error('API key is invalid. Please try again and enter a valid key.');
+          }
+          throw new Error(err.error?.message || 'AI check failed. Please try again!');
+        }
+
+        const data = await res.json();
+        const reply = (data.content?.[0]?.text || '').trim();
+        const isYes = /^yes/i.test(reply);
+        const message = reply.replace(/^(yes|no)[.,!?]?\s*/i, '').trim() || (isYes ? 'Great job!' : 'Keep going, you\'ve got this!');
+
+        document.getElementById('pvChecking').style.display = 'none';
+        if (isYes) {
+          document.getElementById('pvSuccessMsg').textContent = message;
+          document.getElementById('pvSuccess').style.display = 'block';
+        } else {
+          document.getElementById('pvFailMsg').textContent = message;
+          document.getElementById('pvFail').style.display = 'block';
+        }
+      } catch (e) {
+        document.getElementById('pvChecking').style.display = 'none';
+        document.getElementById('pvFailMsg').textContent = e.message || 'Something went wrong. Please try again!';
+        document.getElementById('pvFail').style.display = 'block';
+      }
+    }
+
+    function confirmChoreComplete() {
+      document.getElementById('photoVerifyModal').style.display = 'none';
+      if (!pvState) return;
+      const { context, kidId, choreName, todayChores, token, saKey } = pvState;
+      pvState = null; pvBase64 = null; pvMediaType = null;
+
+      if (context === 'kidmode') {
+        const completions = getCompletions();
+        const todayKey = getTodayKey();
+        if (!completions[todayKey]) completions[todayKey] = {};
+        if (!completions[todayKey][kidId]) completions[todayKey][kidId] = [];
+        if (!completions[todayKey][kidId].includes(choreName)) {
+          completions[todayKey][kidId].push(choreName);
+        }
+        setCompletions(completions);
+        renderKidModeChores(kidId, todayChores);
+        updateKidModeProgress(kidId, todayChores);
+        scheduleCompletionsSync();
+      } else if (context === 'standalone') {
+        let doneChores = JSON.parse(sessionStorage.getItem(saKey) || '[]');
+        if (!doneChores.includes(choreName)) doneChores.push(choreName);
+        sessionStorage.setItem(saKey, JSON.stringify(doneChores));
+        renderKidSAChores(token, todayChores, doneChores, saKey);
+        updateKidSAProgress(todayChores, doneChores);
+        pushKidCompletionsToCloud(token, doneChores);
+      }
+
+      launchConfetti();
+    }
+
+    function launchConfetti() {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999;overflow:hidden;';
+      document.body.appendChild(wrap);
+      const colors = ['#ff9c00','#ff6b6b','#51cf66','#4a8dff','#f06292','#ab47bc','#ffeb3b','#26c6da'];
+      for (let i = 0; i < 90; i++) {
+        const p = document.createElement('div');
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const size = 7 + Math.random() * 9;
+        const left = Math.random() * 100;
+        const dur = 2 + Math.random() * 1.5;
+        const delay = Math.random() * 0.9;
+        const isCircle = Math.random() > 0.5;
+        p.style.cssText =
+          `position:absolute;left:${left}%;top:-20px;width:${size}px;height:${size}px;` +
+          `background:${color};border-radius:${isCircle ? '50%' : '2px'};` +
+          `animation:confettiFall ${dur}s ${delay}s ease-in forwards;` +
+          `transform:rotate(${Math.random()*360}deg);`;
+        wrap.appendChild(p);
+      }
+      setTimeout(() => wrap.remove(), 4500);
     }
 
     // ===== Keyboard Support =====
