@@ -745,12 +745,126 @@
       text-decoration: underline;
     }
 
-    /* Account button in header */
-    .account-bar {
+    /* App Header */
+    .app-header {
       display: flex;
-      justify-content: flex-end;
-      margin-bottom: 10px;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #f2d36b;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
     }
+
+    .app-logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #ff9c00;
+      line-height: 1.1;
+    }
+
+    .app-logo small {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: #aaa;
+      letter-spacing: 0.5px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .sync-pill {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .sync-pill.synced { background: #d3f9d8; color: #2f9e44; }
+    .sync-pill.syncing { background: #fff3cd; color: #e67700; }
+    .sync-pill.local { background: #f1f3f5; color: #868e96; }
+    .sync-pill.error { background: #ffe3e3; color: #c92a2a; }
+
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: #fff9ed;
+      border: 2px solid #f2d36b;
+      border-radius: 30px;
+      padding: 5px 12px 5px 5px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #444;
+    }
+
+    .user-avatar {
+      width: 26px;
+      height: 26px;
+      background: linear-gradient(135deg, #ffb200, #ff9c00);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: white;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    /* Progress Bar */
+    .progress-section {
+      background: linear-gradient(135deg, #fff9ed, #fff4e6);
+      border: 2px solid #f2d36b;
+      border-radius: 14px;
+      padding: 14px 18px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .progress-label {
+      font-weight: 700;
+      color: #444;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    .progress-bar-wrap {
+      flex: 1;
+      min-width: 100px;
+      background: #ffe8cc;
+      border-radius: 10px;
+      height: 10px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ffb200, #ff9c00);
+      border-radius: 10px;
+      transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .progress-count {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #ff9c00;
+      white-space: nowrap;
+    }
+
+    /* Completed row */
+    tr.all-done td { background: #f6fff8 !important; }
+    tr.all-done .chore-text { color: #2f9e44; }
 
     /* Print Styles */
     @media print {
@@ -795,6 +909,21 @@
     <div class="modal">
       <button class="modal-close" onclick="closeAuthModal()" aria-label="Close">✕</button>
 
+      <!-- Login Step -->
+      <div id="loginStep" style="display:none;">
+        <h2 style="color:#4a8dff;">👋 Welcome Back!</h2>
+        <div class="field">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="field">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="Your password" autocomplete="current-password">
+        </div>
+        <button class="primary submit-btn" id="loginBtn" onclick="handleLogin()">Sign In</button>
+        <p class="switch-link">No account yet? <a onclick="showRegisterStep()">Create one</a></p>
+      </div>
+
       <!-- Step 1: Register -->
       <div id="registerStep">
         <h2>👤 Create Account</h2>
@@ -811,7 +940,7 @@
           <input type="password" id="regConfirm" placeholder="Repeat your password" autocomplete="new-password">
         </div>
         <button class="primary submit-btn" onclick="handleRegister()">Create Account</button>
-        <p class="switch-link">Already have an account? <a onclick="showLoginStep()">Sign in</a></p>
+        <p class="switch-link">Already have an account? <a onclick="showLoginStepView()">Sign in</a></p>
       </div>
 
       <!-- Step 2: Verify Email -->
@@ -840,11 +969,29 @@
   </div>
 
   <div class="container">
-    <div class="account-bar">
-      <button id="accountBtn" class="outline" onclick="openAuthModal()" style="margin:0; padding:8px 16px; font-size:0.9rem;">👤 Create Account</button>
+    <div class="app-header">
+      <div class="app-logo">
+        🌟 Chore Quest
+        <small>Build · Track · Celebrate</small>
+      </div>
+      <div class="header-right">
+        <span id="syncPill" class="sync-pill local" style="display:none;">💾 Local</span>
+        <div id="userChip" class="user-chip" style="display:none;">
+          <div class="user-avatar" id="userAvatar"></div>
+          <span id="userEmailLabel"></span>
+        </div>
+        <button id="accountBtn" class="outline" onclick="openAuthModal()" style="margin:0; padding:8px 16px; font-size:0.9rem;">👤 Sign In / Register</button>
+        <button id="logoutBtn" class="danger" onclick="handleLogout()" style="display:none; margin:0; padding:8px 14px; font-size:0.9rem;">Sign Out</button>
+      </div>
     </div>
-    <h1>🌟 SUPER KID CHORE QUEST 🌟</h1>
-    <h2>Build Your Weekly Schedule</h2>
+
+    <div class="progress-section" id="progressSection" style="display:none;">
+      <span class="progress-label">📅 Chores assigned this week:</span>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progressBarFill" style="width:0%"></div>
+      </div>
+      <span class="progress-count" id="progressCount">0 days covered</span>
+    </div>
 
     <div class="form-section">
       <label><b>Hero name:</b></label>
@@ -1250,6 +1397,7 @@
     function render() {
       renderTable();
       renderMobileCards();
+      updateProgress();
     }
 
     // ===== Auto Save =====
@@ -1266,6 +1414,8 @@
       });
 
       setSchedule(schedule);
+      updateProgress();
+      scheduleSync();
     }
 
     // ===== Chore Management =====
@@ -1670,12 +1820,22 @@
       }
     }
 
-    // ===== Auth =====
+    // ===== Auth & Cloud Sync =====
     const API_BASE = "https://api.sizebud.com";
     const APP_NAME = "chore-chopper";
+    const COLLECTION = "schedules";
 
+    function formBody(obj) {
+      return Object.entries(obj)
+        .filter(([, v]) => v !== null && v !== undefined)
+        .map(([k, v]) => encodeURIComponent(k) + "=" + encodeURIComponent(v))
+        .join("&");
+    }
+
+    // --- Modal navigation ---
     function openAuthModal() {
-      showRegisterStep();
+      const email = localStorage.getItem("accountEmail");
+      email ? showLoginStepView() : showRegisterStep();
       document.getElementById("authModal").style.display = "flex";
     }
 
@@ -1684,92 +1844,250 @@
     }
 
     function showRegisterStep() {
+      document.getElementById("loginStep").style.display = "none";
       document.getElementById("registerStep").style.display = "block";
       document.getElementById("verifyStep").style.display = "none";
       document.getElementById("successStep").style.display = "none";
     }
 
-    function showLoginStep() {
-      // Placeholder — can expand to a login flow later
-      showToast("Login coming soon!", "info");
+    function showLoginStepView() {
+      document.getElementById("loginStep").style.display = "block";
+      document.getElementById("registerStep").style.display = "none";
+      document.getElementById("verifyStep").style.display = "none";
+      document.getElementById("successStep").style.display = "none";
+      const saved = localStorage.getItem("accountEmail");
+      if (saved) document.getElementById("loginEmail").value = saved;
     }
 
+    // --- Register ---
     async function handleRegister() {
       const email = document.getElementById("regEmail").value.trim();
       const password = document.getElementById("regPassword").value;
       const confirm = document.getElementById("regConfirm").value;
 
-      if (!email || !password || !confirm) {
-        showToast("Please fill in all fields.", "error");
-        return;
-      }
+      if (!email || !password || !confirm) { showToast("Please fill in all fields.", "error"); return; }
+      if (password !== confirm) { showToast("Passwords don't match.", "error"); return; }
+      if (password.length < 6) { showToast("Password must be at least 6 characters.", "error"); return; }
 
-      if (password !== confirm) {
-        showToast("Passwords don't match.", "error");
-        return;
-      }
-
-      if (password.length < 6) {
-        showToast("Password must be at least 6 characters.", "error");
-        return;
-      }
+      const btn = document.querySelector("#registerStep .submit-btn");
+      btn.disabled = true; btn.textContent = "Creating...";
 
       try {
         const res = await fetch(`${API_BASE}/register`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password, app_name: APP_NAME })
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          credentials: "include",
+          body: formBody({ email, password, app_name: APP_NAME })
         });
-
         const data = await res.json();
-
         if (!res.ok) {
-          showToast(data.detail || "Registration failed. Please try again.", "error");
+          const errMsg = Array.isArray(data.detail)
+            ? data.detail.map(e => e.msg).join(', ')
+            : (data.detail || "Registration failed.");
+          console.error("Register error:", data);
+          showToast(errMsg, "error");
           return;
         }
-
         document.getElementById("verifyEmailDisplay").textContent = email;
         document.getElementById("registerStep").style.display = "none";
         document.getElementById("verifyStep").style.display = "block";
         showToast("📧 Check your email for a verification code!", "info");
       } catch (err) {
         showToast("Network error. Please check your connection.", "error");
-        console.error(err);
+      } finally {
+        btn.disabled = false; btn.textContent = "Create Account";
       }
     }
 
+    // --- Verify Email ---
     async function handleVerify() {
       const email = document.getElementById("regEmail").value.trim();
       const code = document.getElementById("verifyCode").value.trim();
+      if (!code) { showToast("Please enter the verification code.", "error"); return; }
 
-      if (!code) {
-        showToast("Please enter the verification code.", "error");
-        return;
-      }
+      const btn = document.querySelector("#verifyStep .submit-btn");
+      btn.disabled = true; btn.textContent = "Verifying...";
 
       try {
         const res = await fetch(`${API_BASE}/verify_email`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, code, app_name: APP_NAME })
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          credentials: "include",
+          body: formBody({ email, code, app_name: APP_NAME })
         });
-
         const data = await res.json();
-
-        if (!res.ok) {
-          showToast(data.detail || "Verification failed. Check your code.", "error");
-          return;
-        }
-
+        if (!res.ok) { showToast(data.detail || "Verification failed.", "error"); return; }
         document.getElementById("verifyStep").style.display = "none";
         document.getElementById("successStep").style.display = "block";
-        document.getElementById("accountBtn").textContent = `✅ ${email}`;
-        document.getElementById("accountBtn").disabled = true;
         localStorage.setItem("accountEmail", email);
+        setLoggedInUI(email);
+        syncToCloud();
       } catch (err) {
         showToast("Network error. Please check your connection.", "error");
-        console.error(err);
+      } finally {
+        btn.disabled = false; btn.textContent = "Verify & Continue";
       }
+    }
+
+    // --- Login ---
+    async function handleLogin() {
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      if (!email || !password) { showToast("Please enter your email and password.", "error"); return; }
+
+      const btn = document.getElementById("loginBtn");
+      btn.disabled = true; btn.textContent = "Signing in...";
+
+      try {
+        const res = await fetch(`${API_BASE}/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          credentials: "include",
+          body: formBody({ email, password, app_name: APP_NAME })
+        });
+        const data = await res.json();
+        if (!res.ok) { showToast(data.detail || "Login failed. Check your credentials.", "error"); return; }
+        localStorage.setItem("accountEmail", email);
+        setLoggedInUI(email);
+        closeAuthModal();
+        showToast("👋 Welcome back!", "success");
+        await loadFromCloud(email);
+      } catch (err) {
+        showToast("Network error. Please check your connection.", "error");
+      } finally {
+        btn.disabled = false; btn.textContent = "Sign In";
+      }
+    }
+
+    // --- Logout ---
+    async function handleLogout() {
+      if (!confirm("Sign out of your account?")) return;
+      try {
+        await fetch(`${API_BASE}/logout`, { method: "POST", credentials: "include" });
+      } catch (e) {}
+      localStorage.removeItem("accountEmail");
+      setLoggedOutUI();
+      showToast("Signed out.", "info");
+    }
+
+    // --- UI helpers ---
+    function setLoggedInUI(email) {
+      document.getElementById("accountBtn").style.display = "none";
+      document.getElementById("logoutBtn").style.display = "inline-flex";
+      document.getElementById("userChip").style.display = "flex";
+      document.getElementById("userAvatar").textContent = email[0].toUpperCase();
+      document.getElementById("userEmailLabel").textContent = email;
+      document.getElementById("syncPill").style.display = "inline-block";
+      setSyncState("synced");
+    }
+
+    function setLoggedOutUI() {
+      document.getElementById("accountBtn").style.display = "inline-flex";
+      document.getElementById("logoutBtn").style.display = "none";
+      document.getElementById("userChip").style.display = "none";
+      document.getElementById("syncPill").style.display = "none";
+    }
+
+    function setSyncState(state) {
+      const pill = document.getElementById("syncPill");
+      if (!pill) return;
+      pill.className = `sync-pill ${state}`;
+      const labels = { synced: "☁️ Synced", syncing: "⏳ Syncing...", local: "💾 Local", error: "⚠️ Sync error" };
+      pill.textContent = labels[state] || "";
+    }
+
+    // --- Cloud Sync ---
+    let syncTimeout = null;
+
+    function scheduleSync() {
+      const email = localStorage.getItem("accountEmail");
+      if (!email) return;
+      clearTimeout(syncTimeout);
+      setSyncState("syncing");
+      syncTimeout = setTimeout(() => syncToCloud(), 1200);
+    }
+
+    async function syncToCloud() {
+      const email = localStorage.getItem("accountEmail");
+      if (!email) return;
+      const payload = {
+        chores: getChores(),
+        schedule: getSchedule(),
+        descriptions: getDescriptionOverrides(),
+        kidName: localStorage.getItem("kidName") || "",
+        weeklyReward: localStorage.getItem("weeklyReward") || "",
+        scheduleType: localStorage.getItem("scheduleType") || "weekly"
+      };
+      try {
+        const res = await fetch(`${API_BASE}/update_object`, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          credentials: "include",
+          body: formBody({ app_name: APP_NAME, collection_name: COLLECTION, userId: email, obj: JSON.stringify(payload) })
+        });
+        setSyncState(res.ok ? "synced" : "error");
+      } catch (e) {
+        setSyncState("error");
+      }
+    }
+
+    async function loadFromCloud(email) {
+      setSyncState("syncing");
+      try {
+        const res = await fetch(`${API_BASE}/fetch_object`, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          credentials: "include",
+          body: formBody({ app_name: APP_NAME, collection_name: COLLECTION, userId: email })
+        });
+        if (!res.ok) { setSyncState("error"); return; }
+        const data = await res.json();
+        const obj = typeof data.obj === "string" ? JSON.parse(data.obj) : data.obj;
+        if (!obj) { setSyncState("synced"); return; }
+        if (obj.chores) setChores(obj.chores);
+        if (obj.schedule) setSchedule(obj.schedule);
+        if (obj.descriptions) setDescriptionOverrides(obj.descriptions);
+        if (obj.kidName) { localStorage.setItem("kidName", obj.kidName); document.getElementById("kidName").value = obj.kidName; }
+        if (obj.weeklyReward) { localStorage.setItem("weeklyReward", obj.weeklyReward); document.getElementById("weeklyReward").value = obj.weeklyReward; }
+        if (obj.scheduleType) {
+          localStorage.setItem("scheduleType", obj.scheduleType);
+          document.getElementById("scheduleType").value = obj.scheduleType;
+          if (obj.scheduleType === "monthly") {
+            DAYS = MONTHLY_DAYS;
+            document.getElementById("scheduleTable").classList.add("monthly-view");
+            document.getElementById("monthlyHeader").style.display = "block";
+            const now = new Date();
+            document.getElementById("monthlyHeader").textContent = `${now.toLocaleString("default", { month: "long" })} ${now.getFullYear()}`;
+          } else {
+            DAYS = WEEKLY_DAYS;
+          }
+          updateTableHeaders();
+        }
+        render();
+        setSyncState("synced");
+        showToast("☁️ Schedule loaded from cloud!", "success");
+      } catch (e) {
+        setSyncState("error");
+      }
+    }
+
+    // --- Progress tracker ---
+    function updateProgress() {
+      const schedule = getSchedule();
+      const chores = getChores();
+      const daysWithChores = DAYS.filter(d => chores.some(c => (schedule[c] || []).includes(d))).length;
+      const totalChoreAssignments = chores.reduce((sum, c) => sum + (schedule[c] || []).length, 0);
+      const maxAssignments = chores.length * DAYS.length;
+      const pct = maxAssignments > 0 ? Math.round((totalChoreAssignments / maxAssignments) * 100) : 0;
+      document.getElementById("progressBarFill").style.width = pct + "%";
+      document.getElementById("progressCount").textContent = `${daysWithChores} / ${DAYS.length} days covered`;
+      document.getElementById("progressSection").style.display = totalChoreAssignments > 0 ? "flex" : "none";
+
+      document.querySelectorAll("#scheduleBody tr").forEach((tr, i) => {
+        const chore = chores[i];
+        if (!chore) return;
+        tr.classList.toggle("all-done", (schedule[chore] || []).length === DAYS.length);
+      });
     }
 
     // Close modal on overlay click
@@ -1777,17 +2095,19 @@
       if (e.target === document.getElementById("authModal")) closeAuthModal();
     });
 
-    // Restore account state on load
+    // Restore session on load
     const savedAccountEmail = localStorage.getItem("accountEmail");
     if (savedAccountEmail) {
-      document.getElementById("accountBtn").textContent = `✅ ${savedAccountEmail}`;
-      document.getElementById("accountBtn").disabled = true;
+      setLoggedInUI(savedAccountEmail);
     }
 
     // ===== Keyboard Support =====
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && e.target.id === 'newChore') {
-        addChore();
+      if (e.key === 'Enter') {
+        if (e.target.id === 'newChore') addChore();
+        if (e.target.id === 'loginEmail' || e.target.id === 'loginPassword') handleLogin();
+        if (e.target.id === 'regEmail' || e.target.id === 'regPassword' || e.target.id === 'regConfirm') handleRegister();
+        if (e.target.id === 'verifyCode') handleVerify();
       }
     });
 
