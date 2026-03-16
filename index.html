@@ -1176,6 +1176,95 @@
       to { opacity: 1; transform: scale(1); }
     }
 
+    /* Kid standalone view */
+    #kidStandaloneView {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #fff9ed 0%, #ffe8cc 100%);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .kid-standalone-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .kid-standalone-avatar { font-size: 3.5rem; line-height: 1; }
+
+    .kid-standalone-title { flex: 1; }
+
+    .kid-standalone-name {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #ff9c00;
+      line-height: 1.1;
+    }
+
+    .kid-standalone-date {
+      font-size: 0.9rem;
+      color: #888;
+      margin-top: 3px;
+    }
+
+    .kid-standalone-sync {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: #f1f3f5;
+      color: #868e96;
+    }
+
+    .kid-standalone-sync.saving { background: #fff3cd; color: #e67700; }
+    .kid-standalone-sync.saved { background: #d3f9d8; color: #2f9e44; }
+
+    .kid-standalone-progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .kid-standalone-bar-wrap {
+      flex: 1;
+      background: #ffe8cc;
+      border-radius: 10px;
+      height: 14px;
+      overflow: hidden;
+    }
+
+    .kid-standalone-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #51cf66, #40c057);
+      border-radius: 10px;
+      transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .kid-standalone-progress-label {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #444;
+      white-space: nowrap;
+    }
+
+    .kid-standalone-loading {
+      text-align: center;
+      padding: 80px 20px;
+      color: #aaa;
+      font-size: 1.2rem;
+    }
+
+    .kid-standalone-error {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .kid-standalone-error .err-icon { font-size: 3rem; margin-bottom: 12px; }
+    .kid-standalone-error p { color: #666; font-size: 1rem; }
+
     /* Print Styles */
     @media print {
       body {
@@ -1394,6 +1483,39 @@
       <div id="kidDashboard"></div>
     </div>
 
+  </div>
+
+  <!-- Kid Standalone View (shown when ?kid=TOKEN is in URL) -->
+  <div id="kidStandaloneView" style="display:none;">
+    <div class="kid-standalone-loading" id="kidStandaloneLoading">
+      <div>Loading your chores...</div>
+    </div>
+    <div id="kidStandaloneContent" style="display:none;">
+      <div class="kid-standalone-header">
+        <div class="kid-standalone-avatar" id="kidSAAvatar"></div>
+        <div class="kid-standalone-title">
+          <div class="kid-standalone-name" id="kidSAName"></div>
+          <div class="kid-standalone-date" id="kidSADate"></div>
+        </div>
+        <span class="kid-standalone-sync" id="kidSASync">💾 Local</span>
+      </div>
+      <div class="kid-standalone-progress-wrap">
+        <div class="kid-standalone-bar-wrap">
+          <div class="kid-standalone-bar-fill" id="kidSABarFill" style="width:0%"></div>
+        </div>
+        <span class="kid-standalone-progress-label" id="kidSAProgressLabel">0 of 0 done</span>
+      </div>
+      <div id="kidSAChores"></div>
+      <div class="kid-mode-all-done" id="kidSAAllDone" style="display:none;">
+        <span class="all-done-icon">🎉</span>
+        <div class="all-done-text">Amazing job!</div>
+        <div class="all-done-sub" id="kidSAAllDoneName"></div>
+      </div>
+    </div>
+    <div class="kid-standalone-error" id="kidStandaloneError" style="display:none;">
+      <div class="err-icon">😕</div>
+      <p>This link doesn't seem to be working.<br>Ask your parent for a new one!</p>
+    </div>
   </div>
 
   <!-- Kid Mode Overlay -->
@@ -2557,6 +2679,7 @@
           <span class="kid-big-emoji">${kid.emoji}</span>
           <span class="kid-name-label">${kid.name}</span>
           <button class="secondary" onclick="openKidMode('${kid.id}')" style="margin:0;padding:8px 14px;font-size:0.9rem;">🎮 Kid Mode</button>
+          <button class="success" onclick="generateKidLink('${kid.id}')" style="margin:0;padding:8px 14px;font-size:0.9rem;">🔗 Get Link</button>
           <button class="danger" onclick="removeKid('${kid.id}')" style="margin:0;padding:8px 12px;font-size:0.9rem;">✕</button>
         `;
 
@@ -2592,9 +2715,22 @@
 
       if (kids.length === 0) { container.innerHTML = ""; return; }
 
+      const titleRow = document.createElement("div");
+      titleRow.style.cssText = "display:flex;align-items:center;justify-content:space-between;margin:20px 0 12px 0;";
+
       const title = document.createElement("div");
       title.className = "kids-section-title";
+      title.style.margin = "0";
       title.textContent = "📅 Today's Progress";
+
+      const refreshBtn = document.createElement("button");
+      refreshBtn.className = "outline";
+      refreshBtn.style.cssText = "margin:0;padding:6px 12px;font-size:0.85rem;";
+      refreshBtn.textContent = "🔄 Refresh";
+      refreshBtn.onclick = () => refreshKidCompletions();
+
+      titleRow.appendChild(title);
+      titleRow.appendChild(refreshBtn);
 
       const grid = document.createElement("div");
       grid.className = "kid-dashboard-grid";
@@ -2620,7 +2756,7 @@
       });
 
       container.innerHTML = "";
-      container.appendChild(title);
+      container.appendChild(titleRow);
       container.appendChild(grid);
     }
 
@@ -2783,6 +2919,242 @@
       } catch (e) { console.error("Completions sync error", e); }
     }
 
+    // ===== Kid Link / Standalone Mode =====
+
+    function generateKidToken() {
+      return Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 6);
+    }
+
+    async function generateKidLink(kidId) {
+      const kids = getKids();
+      const kid = kids.find(k => k.id === kidId);
+      if (!kid) return;
+
+      const email = localStorage.getItem("accountEmail");
+      if (!email) { showToast("Please sign in to generate a kid link.", "error"); return; }
+
+      // Generate or reuse token
+      if (!kid.token) {
+        kid.token = generateKidToken();
+        setKids(kids);
+      }
+
+      const schedule = getSchedule();
+      const assignments = getKidAssignments()[kidId] || [];
+      const kidSession = {
+        name: kid.name,
+        emoji: kid.emoji,
+        assignments,
+        schedule,
+        parentId: email
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/update_object`, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          credentials: "include",
+          body: formBody({
+            app_name: APP_NAME,
+            collection_name: "kid-sessions",
+            userId: kid.token,
+            obj: JSON.stringify(kidSession)
+          })
+        });
+
+        if (!res.ok) { showToast("Could not generate link. Make sure you're signed in.", "error"); return; }
+
+        const url = `${location.origin}${location.pathname}?kid=${kid.token}`;
+        try {
+          await navigator.clipboard.writeText(url);
+          showToast(`🔗 Link for ${kid.name} copied to clipboard!`, "success");
+        } catch (e) {
+          prompt(`Copy this link for ${kid.name}:`, url);
+        }
+      } catch (e) {
+        showToast("Network error generating link.", "error");
+      }
+    }
+
+    async function refreshKidCompletions() {
+      const kids = getKids();
+      const tokenKids = kids.filter(k => k.token);
+      if (tokenKids.length === 0) { showToast("No kid links generated yet.", "info"); return; }
+
+      const email = localStorage.getItem("accountEmail");
+      if (!email) { showToast("Please sign in to refresh.", "error"); return; }
+
+      showToast("🔄 Refreshing...", "info");
+
+      const completions = getCompletions();
+      const todayKey = getTodayKey();
+
+      await Promise.all(tokenKids.map(async (kid) => {
+        try {
+          const res = await fetch(`${API_BASE}/fetch_object`, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            credentials: "include",
+            body: formBody({ app_name: APP_NAME, collection_name: "kid-completions", userId: kid.token })
+          });
+          if (!res.ok) return;
+          const data = await res.json();
+          const obj = typeof data.obj === "string" ? JSON.parse(data.obj) : data.obj;
+          if (obj && obj.date === todayKey && Array.isArray(obj.completions)) {
+            if (!completions[todayKey]) completions[todayKey] = {};
+            completions[todayKey][kid.id] = obj.completions;
+          }
+        } catch (e) {}
+      }));
+
+      setCompletions(completions);
+      renderKidDashboard();
+      showToast("✅ Progress updated!", "success");
+    }
+
+    // ===== Kid Standalone Mode (accessed via ?kid=TOKEN) =====
+
+    async function initKidStandaloneMode(token) {
+      // Hide main app, show standalone view
+      document.querySelector(".container").style.display = "none";
+      document.getElementById("kidModeOverlay").style.display = "none";
+      document.getElementById("kidStandaloneView").style.display = "flex";
+      document.body.style.background = "linear-gradient(135deg, #fff9ed 0%, #ffe8cc 100%)";
+
+      try {
+        const res = await fetch(`${API_BASE}/fetch_object`, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: formBody({ app_name: APP_NAME, collection_name: "kid-sessions", userId: token })
+        });
+
+        if (!res.ok) { showKidStandaloneError(); return; }
+        const data = await res.json();
+        const kidData = typeof data.obj === "string" ? JSON.parse(data.obj) : data.obj;
+        if (!kidData) { showKidStandaloneError(); return; }
+
+        renderKidStandaloneView(kidData, token);
+      } catch (e) {
+        showKidStandaloneError();
+      }
+    }
+
+    function showKidStandaloneError() {
+      document.getElementById("kidStandaloneLoading").style.display = "none";
+      document.getElementById("kidStandaloneError").style.display = "block";
+    }
+
+    function renderKidStandaloneView(kidData, token) {
+      document.getElementById("kidStandaloneLoading").style.display = "none";
+      document.getElementById("kidStandaloneContent").style.display = "block";
+
+      const today = new Date().toLocaleDateString("en-US", { weekday: "short" }).slice(0, 3);
+      const todayLabel = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+      const assignments = kidData.assignments || [];
+      const schedule = kidData.schedule || {};
+      const todayChores = assignments.filter(c => (schedule[c] || []).includes(today));
+
+      document.getElementById("kidSAAvatar").textContent = kidData.emoji || "🌟";
+      document.getElementById("kidSAName").textContent = (kidData.name || "Kid") + "'s Chores";
+      document.getElementById("kidSADate").textContent = todayLabel;
+      document.getElementById("kidSAAllDoneName").textContent = `You're awesome, ${kidData.name}! 🌟`;
+      document.title = `${kidData.name}'s Chore Quest`;
+
+      // Load completions from sessionStorage (kid's device)
+      const saKey = `sa_completions_${token}_${getTodayKey()}`;
+      let doneChores = JSON.parse(sessionStorage.getItem(saKey) || "[]");
+
+      renderKidSAChores(token, todayChores, doneChores, saKey);
+      updateKidSAProgress(todayChores, doneChores);
+    }
+
+    function renderKidSAChores(token, todayChores, doneChores, saKey) {
+      const container = document.getElementById("kidSAChores");
+      container.innerHTML = "";
+
+      if (todayChores.length === 0) {
+        container.innerHTML = `
+          <div class="kid-free-day">
+            <span class="free-icon">🎉</span>
+            <div class="free-text">Free Day!</div>
+            <div class="free-sub">No chores today — enjoy your day!</div>
+          </div>`;
+        document.getElementById("kidSABarFill").style.width = "100%";
+        document.getElementById("kidSABarFill").style.background = "linear-gradient(90deg,#ffb200,#ff9c00)";
+        document.getElementById("kidSAProgressLabel").textContent = "Free day!";
+        return;
+      }
+
+      todayChores.forEach(chore => {
+        const done = doneChores.includes(chore);
+        const row = document.createElement("div");
+        row.className = "kid-chore-row" + (done ? " done" : "");
+        row.onclick = () => toggleKidSACompletion(token, chore, todayChores, saKey);
+        row.innerHTML = `
+          <div class="kid-chore-check">${done ? "✓" : ""}</div>
+          <span class="kid-chore-text">${chore}</span>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function toggleKidSACompletion(token, choreName, todayChores, saKey) {
+      let doneChores = JSON.parse(sessionStorage.getItem(saKey) || "[]");
+      const idx = doneChores.indexOf(choreName);
+      if (idx === -1) doneChores.push(choreName);
+      else doneChores.splice(idx, 1);
+      sessionStorage.setItem(saKey, JSON.stringify(doneChores));
+
+      renderKidSAChores(token, todayChores, doneChores, saKey);
+      updateKidSAProgress(todayChores, doneChores);
+      pushKidCompletionsToCloud(token, doneChores);
+    }
+
+    function updateKidSAProgress(todayChores, doneChores) {
+      if (todayChores.length === 0) return;
+      const done = doneChores.filter(c => todayChores.includes(c));
+      const pct = Math.round((done.length / todayChores.length) * 100);
+      document.getElementById("kidSABarFill").style.width = pct + "%";
+      document.getElementById("kidSAProgressLabel").textContent = `${done.length} of ${todayChores.length} done`;
+
+      if (done.length === todayChores.length) {
+        document.getElementById("kidSAAllDone").style.display = "block";
+        document.getElementById("kidSAChores").style.display = "none";
+      } else {
+        document.getElementById("kidSAAllDone").style.display = "none";
+        document.getElementById("kidSAChores").style.display = "block";
+      }
+    }
+
+    let kidsaPushTimeout = null;
+
+    async function pushKidCompletionsToCloud(token, doneChores) {
+      const syncEl = document.getElementById("kidSASync");
+      syncEl.textContent = "⏳ Saving...";
+      syncEl.className = "kid-standalone-sync saving";
+
+      clearTimeout(kidsaPushTimeout);
+      kidsaPushTimeout = setTimeout(async () => {
+        try {
+          const res = await fetch(`${API_BASE}/update_object`, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: formBody({
+              app_name: APP_NAME,
+              collection_name: "kid-completions",
+              userId: token,
+              obj: JSON.stringify({ completions: doneChores, date: getTodayKey() })
+            })
+          });
+          syncEl.textContent = res.ok ? "☁️ Saved!" : "⚠️ Not saved";
+          syncEl.className = `kid-standalone-sync ${res.ok ? "saved" : ""}`;
+        } catch (e) {
+          syncEl.textContent = "⚠️ Offline";
+          syncEl.className = "kid-standalone-sync";
+        }
+      }, 800);
+    }
+
     // ===== Keyboard Support =====
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
@@ -2815,8 +3187,13 @@
       monthlyHeader.style.display = 'none';
     }
     
-    pruneOldCompletions();
-    updateTableHeaders();
+    // Check for kid standalone URL param
+    const kidTokenParam = new URLSearchParams(location.search).get("kid");
+    if (kidTokenParam) {
+      initKidStandaloneMode(kidTokenParam);
+    } else {
+      pruneOldCompletions();
+      updateTableHeaders();
     render();
     document.getElementById("kidName").value = localStorage.getItem("kidName") || "";
     document.getElementById("weeklyReward").value = localStorage.getItem("weeklyReward") || "";
@@ -2826,6 +3203,7 @@
     if (savedImage) {
       displayImagePreview(savedImage);
     }
+    } // end kidTokenParam else block
   </script>
 </body>
 </html>
