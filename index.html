@@ -866,6 +866,316 @@
     tr.all-done td { background: #f6fff8 !important; }
     tr.all-done .chore-text { color: #2f9e44; }
 
+    /* ===== Tab Bar ===== */
+    .tab-bar {
+      display: flex;
+      border-bottom: 2px solid #f2d36b;
+      margin-bottom: 20px;
+      gap: 4px;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      border-radius: 0;
+      padding: 10px 22px;
+      font-size: 1rem;
+      color: #aaa;
+      cursor: pointer;
+      font-weight: 600;
+      font-family: inherit;
+      transition: all 0.2s;
+      margin: 0;
+      box-shadow: none;
+    }
+
+    .tab-btn:hover { color: #ff9c00; transform: none; box-shadow: none; }
+    .tab-btn.active { color: #ff9c00; border-bottom-color: #ff9c00; font-weight: 800; }
+
+    /* ===== Kids Tab ===== */
+    .kid-manager-row {
+      background: #fffaf0;
+      border: 2px solid #f2d36b;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .kid-manager-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .kid-big-emoji { font-size: 2rem; line-height: 1; }
+
+    .kid-name-label {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #444;
+      flex: 1;
+    }
+
+    .kid-chore-assign {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .kid-chore-assign p {
+      width: 100%;
+      font-weight: 700;
+      color: #666;
+      font-size: 0.85rem;
+      margin: 0 0 6px 0;
+    }
+
+    .kid-chore-assign label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: white;
+      border: 1px solid #f2d36b;
+      border-radius: 8px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: #444;
+      transition: border-color 0.15s;
+    }
+
+    .kid-chore-assign label:hover { border-color: #ff9c00; }
+
+    .kid-chore-assign input[type=checkbox] {
+      width: 16px;
+      height: 16px;
+      accent-color: #ff9c00;
+    }
+
+    /* Parent dashboard */
+    .kids-section-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #444;
+      margin: 20px 0 12px 0;
+    }
+
+    .kid-dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .kid-progress-card {
+      background: white;
+      border: 2px solid #f2d36b;
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+      transition: transform 0.2s;
+    }
+
+    .kid-progress-card:hover { transform: translateY(-2px); }
+
+    .kid-progress-card .card-emoji { font-size: 2.5rem; display: block; margin-bottom: 6px; }
+    .kid-progress-card .card-name { font-weight: 800; color: #444; font-size: 1rem; }
+    .kid-progress-card .card-stat { font-size: 0.85rem; color: #ff9c00; font-weight: 700; margin-top: 4px; }
+
+    .kid-mini-bar-wrap {
+      background: #ffe8cc;
+      border-radius: 6px;
+      height: 8px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .kid-mini-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ffb200, #ff9c00);
+      border-radius: 6px;
+      transition: width 0.5s ease;
+    }
+
+    .kid-complete-badge {
+      background: #d3f9d8;
+      color: #2f9e44;
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: inline-block;
+      margin-top: 6px;
+    }
+
+    .no-kids-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #bbb;
+    }
+
+    .no-kids-state .empty-icon { font-size: 3rem; margin-bottom: 10px; }
+
+    /* ===== Kid Mode Overlay ===== */
+    #kidModeOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 5000;
+      background: linear-gradient(135deg, #fff9ed 0%, #ffe8cc 100%);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .kid-mode-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+      position: relative;
+    }
+
+    .kid-mode-avatar { font-size: 3.5rem; line-height: 1; }
+
+    .kid-mode-title { flex: 1; }
+
+    .kid-mode-name {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #ff9c00;
+      line-height: 1.1;
+    }
+
+    .kid-mode-date {
+      font-size: 0.95rem;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    .kid-mode-exit {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: #ff6b6b;
+      color: white;
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .kid-mode-exit:hover { background: #ff5252; transform: none; box-shadow: none; }
+
+    .kid-mode-progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .kid-mode-bar-wrap {
+      flex: 1;
+      background: #ffe8cc;
+      border-radius: 10px;
+      height: 14px;
+      overflow: hidden;
+    }
+
+    .kid-mode-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #51cf66, #40c057);
+      border-radius: 10px;
+      transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .kid-mode-progress-label {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #444;
+      white-space: nowrap;
+    }
+
+    .kid-chore-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: white;
+      border: 2px solid #f2d36b;
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 10px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #444;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .kid-chore-row:hover { border-color: #ff9c00; transform: translateX(3px); }
+    .kid-chore-row:active { transform: scale(0.98); }
+
+    .kid-chore-row.done {
+      background: #f6fff8;
+      border-color: #69db7c;
+      color: #2f9e44;
+    }
+
+    .kid-chore-row.done .kid-chore-text { text-decoration: line-through; opacity: 0.7; }
+
+    .kid-chore-check {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #f2d36b;
+      border-radius: 10px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      background: white;
+      transition: all 0.2s;
+    }
+
+    .kid-chore-row.done .kid-chore-check {
+      background: #40c057;
+      border-color: #40c057;
+      color: white;
+    }
+
+    .kid-chore-text { flex: 1; }
+
+    .kid-mode-all-done {
+      text-align: center;
+      padding: 30px 20px;
+      animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .kid-mode-all-done .all-done-icon { font-size: 4rem; display: block; margin-bottom: 10px; }
+    .kid-mode-all-done .all-done-text { font-size: 1.8rem; font-weight: 800; color: #ff9c00; }
+    .kid-mode-all-done .all-done-sub { font-size: 1.1rem; color: #666; margin-top: 8px; }
+
+    .kid-free-day {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .kid-free-day .free-icon { font-size: 4rem; display: block; margin-bottom: 14px; }
+    .kid-free-day .free-text { font-size: 1.8rem; font-weight: 800; color: #ff9c00; }
+    .kid-free-day .free-sub { font-size: 1rem; color: #888; margin-top: 8px; }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.7); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
     /* Print Styles */
     @media print {
       body {
@@ -985,6 +1295,12 @@
       </div>
     </div>
 
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tabSchedule" onclick="switchTab('schedule')">📋 Schedule</button>
+      <button class="tab-btn" id="tabKids" onclick="switchTab('kids')">👨‍👧 My Kids</button>
+    </div>
+
+    <div id="schedulePanel">
     <div class="progress-section" id="progressSection" style="display:none;">
       <span class="progress-label">📅 Chores assigned this week:</span>
       <div class="progress-bar-wrap">
@@ -1059,6 +1375,49 @@
     <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importSchedule(event)">
 
     <p class="note">✨ Your schedule saves automatically! Click "Save & Download PDF" to get a printable copy.</p>
+    </div><!-- end #schedulePanel -->
+
+    <!-- Kids Panel -->
+    <div id="kidsPanel" style="display:none;">
+      <div class="form-section">
+        <label><b>Add a Kid:</b></label>
+        <select id="kidEmojiSelect" style="font-size:1.2rem; padding:8px;">
+          <option>🦸</option><option>🧒</option><option>👦</option><option>👧</option>
+          <option>🌟</option><option>🦁</option><option>🐯</option><option>🦄</option>
+          <option>🐉</option><option>🚀</option><option>⚡</option><option>🌈</option>
+          <option>🎮</option><option>⚽</option><option>🎨</option><option>🎵</option>
+        </select>
+        <input id="kidNameInput" type="text" placeholder="Kid's name" style="margin-left:8px;">
+        <button class="primary" onclick="addKid()" style="margin-left:8px;">Add Kid</button>
+      </div>
+      <div id="kidListSection"></div>
+      <div id="kidDashboard"></div>
+    </div>
+
+  </div>
+
+  <!-- Kid Mode Overlay -->
+  <div id="kidModeOverlay" style="display:none;">
+    <div class="kid-mode-header">
+      <div class="kid-mode-avatar" id="kidModeAvatar"></div>
+      <div class="kid-mode-title">
+        <div class="kid-mode-name" id="kidModeName"></div>
+        <div class="kid-mode-date" id="kidModeDate"></div>
+      </div>
+      <button class="kid-mode-exit" onclick="closeKidMode()">✕ Exit</button>
+    </div>
+    <div class="kid-mode-progress-wrap">
+      <div class="kid-mode-bar-wrap">
+        <div class="kid-mode-bar-fill" id="kidModeBarFill" style="width:0%"></div>
+      </div>
+      <span class="kid-mode-progress-label" id="kidModeProgressLabel">0 of 0 done</span>
+    </div>
+    <div id="kidModeChores"></div>
+    <div class="kid-mode-all-done" id="kidModeAllDone" style="display:none;">
+      <span class="all-done-icon">🎉</span>
+      <div class="all-done-text">Amazing job!</div>
+      <div class="all-done-sub" id="kidModeAllDoneName"></div>
+    </div>
   </div>
 
   <!-- Hidden poster for PDF -->
@@ -1109,6 +1468,47 @@
       "🧹 Crumb Crusher": "Sweep crumbs or small messes into a pile and toss them—leave the floor feeling fresh.",
       "🧊 Fridge Ranger": "Check for old leftovers (ask first!) and make sure items are closed and put back neatly."
     };
+
+    // ===== Kids & Completions Storage =====
+    function getKids() {
+      return JSON.parse(localStorage.getItem("kids") || "[]");
+    }
+    function setKids(arr) { localStorage.setItem("kids", JSON.stringify(arr)); }
+
+    function getKidAssignments() {
+      return JSON.parse(localStorage.getItem("kidAssignments") || "{}");
+    }
+    function setKidAssignments(obj) { localStorage.setItem("kidAssignments", JSON.stringify(obj)); }
+
+    function getCompletions() {
+      return JSON.parse(localStorage.getItem("completions") || "{}");
+    }
+    function setCompletions(obj) { localStorage.setItem("completions", JSON.stringify(obj)); }
+
+    function getTodayKey() { return new Date().toISOString().slice(0, 10); }
+
+    function getTodayDayAbbrev() {
+      return new Date().toLocaleDateString("en-US", { weekday: "short" }).slice(0, 3);
+    }
+
+    function getKidCompletionsToday(kidId) {
+      const c = getCompletions();
+      return (c[getTodayKey()] || {})[kidId] || [];
+    }
+
+    function isChoreCompleted(kidId, choreName) {
+      return getKidCompletionsToday(kidId).includes(choreName);
+    }
+
+    function pruneOldCompletions() {
+      const c = getCompletions();
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 7);
+      Object.keys(c).forEach(dateKey => {
+        if (new Date(dateKey) < cutoff) delete c[dateKey];
+      });
+      setCompletions(c);
+    }
 
     // ===== Toast Notifications =====
     function showToast(message, type = 'success') {
@@ -2066,6 +2466,24 @@
         render();
         setSyncState("synced");
         showToast("☁️ Schedule loaded from cloud!", "success");
+        // Also load completions/kids data
+        try {
+          const cRes = await fetch(`${API_BASE}/fetch_object`, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            credentials: "include",
+            body: formBody({ app_name: APP_NAME, collection_name: "completions", userId: email })
+          });
+          if (cRes.ok) {
+            const cData = await cRes.json();
+            const cObj = typeof cData.obj === "string" ? JSON.parse(cData.obj) : cData.obj;
+            if (cObj) {
+              if (cObj.completions) setCompletions(cObj.completions);
+              if (cObj.kids) setKids(cObj.kids);
+              if (cObj.kidAssignments) setKidAssignments(cObj.kidAssignments);
+            }
+          }
+        } catch (e) {}
       } catch (e) {
         setSyncState("error");
       }
@@ -2101,10 +2519,275 @@
       setLoggedInUI(savedAccountEmail);
     }
 
+    // ===== Tab Switching =====
+    function switchTab(tab) {
+      document.getElementById("schedulePanel").style.display = tab === "schedule" ? "block" : "none";
+      document.getElementById("kidsPanel").style.display = tab === "kids" ? "block" : "none";
+      document.getElementById("tabSchedule").classList.toggle("active", tab === "schedule");
+      document.getElementById("tabKids").classList.toggle("active", tab === "kids");
+      if (tab === "kids") renderKidsTab();
+    }
+
+    // ===== Kids Tab Rendering =====
+    function renderKidsTab() {
+      renderKidManagerSection();
+      renderKidDashboard();
+    }
+
+    function renderKidManagerSection() {
+      const kids = getKids();
+      const assignments = getKidAssignments();
+      const chores = getChores();
+      const section = document.getElementById("kidListSection");
+
+      if (kids.length === 0) {
+        section.innerHTML = `<div class="no-kids-state"><div class="empty-icon">👨‍👧‍👦</div><p>Add your first kid above to get started!</p></div>`;
+        return;
+      }
+
+      section.innerHTML = "";
+      kids.forEach(kid => {
+        const assigned = assignments[kid.id] || [];
+        const row = document.createElement("div");
+        row.className = "kid-manager-row";
+
+        const header = document.createElement("div");
+        header.className = "kid-manager-header";
+        header.innerHTML = `
+          <span class="kid-big-emoji">${kid.emoji}</span>
+          <span class="kid-name-label">${kid.name}</span>
+          <button class="secondary" onclick="openKidMode('${kid.id}')" style="margin:0;padding:8px 14px;font-size:0.9rem;">🎮 Kid Mode</button>
+          <button class="danger" onclick="removeKid('${kid.id}')" style="margin:0;padding:8px 12px;font-size:0.9rem;">✕</button>
+        `;
+
+        const assignWrap = document.createElement("div");
+        assignWrap.className = "kid-chore-assign";
+        assignWrap.innerHTML = `<p>Assign chores to ${kid.name}:</p>`;
+
+        chores.forEach(chore => {
+          const lbl = document.createElement("label");
+          const cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.dataset.kidId = kid.id;
+          cb.dataset.choreAssign = chore;
+          cb.checked = assigned.includes(chore);
+          cb.addEventListener("change", () => saveKidAssignments(kid.id));
+          lbl.appendChild(cb);
+          lbl.appendChild(document.createTextNode(" " + chore));
+          assignWrap.appendChild(lbl);
+        });
+
+        row.appendChild(header);
+        row.appendChild(assignWrap);
+        section.appendChild(row);
+      });
+    }
+
+    function renderKidDashboard() {
+      const kids = getKids();
+      const schedule = getSchedule();
+      const assignments = getKidAssignments();
+      const today = getTodayDayAbbrev();
+      const container = document.getElementById("kidDashboard");
+
+      if (kids.length === 0) { container.innerHTML = ""; return; }
+
+      const title = document.createElement("div");
+      title.className = "kids-section-title";
+      title.textContent = "📅 Today's Progress";
+
+      const grid = document.createElement("div");
+      grid.className = "kid-dashboard-grid";
+
+      kids.forEach(kid => {
+        const assigned = (assignments[kid.id] || []).filter(c => (schedule[c] || []).includes(today));
+        const done = getKidCompletionsToday(kid.id).filter(c => assigned.includes(c));
+        const total = assigned.length;
+        const pct = total > 0 ? Math.round((done.length / total) * 100) : 0;
+        const allDone = total > 0 && done.length === total;
+
+        const card = document.createElement("div");
+        card.className = "kid-progress-card";
+        card.innerHTML = `
+          <span class="card-emoji">${kid.emoji}</span>
+          <div class="card-name">${kid.name}</div>
+          <div class="card-stat">${total > 0 ? `${done.length} / ${total} chores` : "No chores today"}</div>
+          ${total > 0 ? `<div class="kid-mini-bar-wrap"><div class="kid-mini-bar-fill" style="width:${pct}%"></div></div>` : ""}
+          ${allDone ? `<div class="kid-complete-badge">✅ All done!</div>` : ""}
+          <button class="secondary" onclick="openKidMode('${kid.id}')" style="margin-top:10px;padding:7px 14px;font-size:0.85rem;width:100%;">🎮 Kid Mode</button>
+        `;
+        grid.appendChild(card);
+      });
+
+      container.innerHTML = "";
+      container.appendChild(title);
+      container.appendChild(grid);
+    }
+
+    // ===== Kid Management =====
+    function addKid() {
+      const name = document.getElementById("kidNameInput").value.trim();
+      if (!name) { showToast("Please enter a name for the kid.", "error"); return; }
+      const emoji = document.getElementById("kidEmojiSelect").value;
+      const kids = getKids();
+      kids.push({ id: "kid_" + Date.now(), name, emoji });
+      setKids(kids);
+      document.getElementById("kidNameInput").value = "";
+      renderKidsTab();
+      scheduleSync();
+      showToast(`✅ ${name} added!`, "success");
+    }
+
+    function removeKid(kidId) {
+      const kids = getKids();
+      const kid = kids.find(k => k.id === kidId);
+      if (!kid || !confirm(`Remove ${kid.name} from your family?`)) return;
+      setKids(kids.filter(k => k.id !== kidId));
+      const assignments = getKidAssignments();
+      delete assignments[kidId];
+      setKidAssignments(assignments);
+      renderKidsTab();
+      scheduleSync();
+      showToast(`Removed ${kid.name}.`, "info");
+    }
+
+    function saveKidAssignments(kidId) {
+      const assignments = getKidAssignments();
+      const checkboxes = document.querySelectorAll(`input[data-kid-id="${kidId}"][data-chore-assign]`);
+      assignments[kidId] = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.dataset.choreAssign);
+      setKidAssignments(assignments);
+      scheduleSync();
+    }
+
+    // ===== Kid Mode =====
+    let currentKidId = null;
+
+    function openKidMode(kidId) {
+      const kid = getKids().find(k => k.id === kidId);
+      if (!kid) return;
+      currentKidId = kidId;
+
+      const schedule = getSchedule();
+      const assignments = getKidAssignments()[kidId] || [];
+      const today = getTodayDayAbbrev();
+      const todayChores = assignments.filter(c => (schedule[c] || []).includes(today));
+
+      document.getElementById("kidModeAvatar").textContent = kid.emoji;
+      document.getElementById("kidModeName").textContent = kid.name + "'s Chores";
+      document.getElementById("kidModeDate").textContent = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+      document.getElementById("kidModeAllDone").style.display = "none";
+      document.getElementById("kidModeAllDoneName").textContent = `You crushed it, ${kid.name}! 🌟`;
+
+      renderKidModeChores(kidId, todayChores);
+      updateKidModeProgress(kidId, todayChores);
+
+      document.getElementById("kidModeOverlay").style.display = "flex";
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeKidMode() {
+      document.getElementById("kidModeOverlay").style.display = "none";
+      document.body.style.overflow = "";
+      currentKidId = null;
+      renderKidDashboard();
+    }
+
+    function renderKidModeChores(kidId, todayChores) {
+      const container = document.getElementById("kidModeChores");
+      container.innerHTML = "";
+
+      if (todayChores.length === 0) {
+        container.innerHTML = `
+          <div class="kid-free-day">
+            <span class="free-icon">🎉</span>
+            <div class="free-text">Free Day!</div>
+            <div class="free-sub">No chores today — enjoy your day!</div>
+          </div>`;
+        document.getElementById("kidModeProgressLabel").textContent = "Free day!";
+        document.getElementById("kidModeBarFill").style.width = "100%";
+        document.getElementById("kidModeBarFill").style.background = "linear-gradient(90deg,#ffb200,#ff9c00)";
+        return;
+      }
+
+      todayChores.forEach(chore => {
+        const done = isChoreCompleted(kidId, chore);
+        const row = document.createElement("div");
+        row.className = "kid-chore-row" + (done ? " done" : "");
+        row.onclick = () => toggleCompletion(kidId, chore, todayChores);
+        row.innerHTML = `
+          <div class="kid-chore-check">${done ? "✓" : ""}</div>
+          <span class="kid-chore-text">${chore}</span>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function toggleCompletion(kidId, choreName, todayChores) {
+      const completions = getCompletions();
+      const todayKey = getTodayKey();
+      if (!completions[todayKey]) completions[todayKey] = {};
+      if (!completions[todayKey][kidId]) completions[todayKey][kidId] = [];
+
+      const list = completions[todayKey][kidId];
+      const idx = list.indexOf(choreName);
+      if (idx === -1) list.push(choreName);
+      else list.splice(idx, 1);
+
+      setCompletions(completions);
+      renderKidModeChores(kidId, todayChores);
+      updateKidModeProgress(kidId, todayChores);
+      scheduleCompletionsSync();
+    }
+
+    function updateKidModeProgress(kidId, todayChores) {
+      if (todayChores.length === 0) return;
+      const done = getKidCompletionsToday(kidId).filter(c => todayChores.includes(c));
+      const pct = Math.round((done.length / todayChores.length) * 100);
+      document.getElementById("kidModeBarFill").style.width = pct + "%";
+      document.getElementById("kidModeProgressLabel").textContent = `${done.length} of ${todayChores.length} done`;
+
+      if (done.length === todayChores.length && todayChores.length > 0) {
+        document.getElementById("kidModeAllDone").style.display = "block";
+        document.getElementById("kidModeChores").style.display = "none";
+      } else {
+        document.getElementById("kidModeAllDone").style.display = "none";
+        document.getElementById("kidModeChores").style.display = "block";
+      }
+    }
+
+    // ===== Completions Cloud Sync =====
+    let completionsSyncTimeout = null;
+
+    function scheduleCompletionsSync() {
+      const email = localStorage.getItem("accountEmail");
+      if (!email) return;
+      clearTimeout(completionsSyncTimeout);
+      completionsSyncTimeout = setTimeout(() => syncCompletionsToCloud(), 1200);
+    }
+
+    async function syncCompletionsToCloud() {
+      const email = localStorage.getItem("accountEmail");
+      if (!email) return;
+      try {
+        await fetch(`${API_BASE}/update_object`, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          credentials: "include",
+          body: formBody({
+            app_name: APP_NAME,
+            collection_name: "completions",
+            userId: email,
+            obj: JSON.stringify({ completions: getCompletions(), kids: getKids(), kidAssignments: getKidAssignments() })
+          })
+        });
+      } catch (e) { console.error("Completions sync error", e); }
+    }
+
     // ===== Keyboard Support =====
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         if (e.target.id === 'newChore') addChore();
+        if (e.target.id === 'kidNameInput') addKid();
         if (e.target.id === 'loginEmail' || e.target.id === 'loginPassword') handleLogin();
         if (e.target.id === 'regEmail' || e.target.id === 'regPassword' || e.target.id === 'regConfirm') handleRegister();
         if (e.target.id === 'verifyCode') handleVerify();
@@ -2132,6 +2815,7 @@
       monthlyHeader.style.display = 'none';
     }
     
+    pruneOldCompletions();
     updateTableHeaders();
     render();
     document.getElementById("kidName").value = localStorage.getItem("kidName") || "";
