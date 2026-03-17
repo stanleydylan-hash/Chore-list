@@ -3080,38 +3080,34 @@
       return Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 6);
     }
 
-    async function generateKidLink(kidId) {
+    function generateKidLink(kidId) {
       const kids = getKids();
       const kid = kids.find(k => k.id === kidId);
       if (!kid) return;
 
-      const email = localStorage.getItem("accountEmail");
-      if (!email) { showToast("Please sign in to generate a kid link.", "error"); return; }
-
-      // Generate or reuse token
       if (!kid.token) {
         kid.token = generateKidToken();
         setKids(kids);
       }
 
-      const schedule = getSchedule();
-      const assignments = getKidAssignments()[kidId] || [];
-      const kidSession = {
+      const data = {
         name: kid.name,
         emoji: kid.emoji,
-        assignments,
-        schedule,
-        parentId: email
+        assignments: getKidAssignments()[kidId] || [],
+        schedule: getSchedule()
       };
 
-      // Encode all kid data directly in the URL — no server write needed
-      const d = btoa(encodeURIComponent(JSON.stringify(kidSession)));
-      const url = `${location.origin}${location.pathname}?kid=${kid.token}&d=${d}`;
       try {
-        await navigator.clipboard.writeText(url);
-        showToast(`🔗 Link for ${kid.name} copied to clipboard!`, "success");
+        const encoded = btoa(encodeURIComponent(JSON.stringify(data)));
+        const url = `${location.origin}${location.pathname}?kid=${kid.token}&d=${encoded}`;
+        try {
+          navigator.clipboard.writeText(url);
+          showToast(`🔗 Link for ${kid.name} copied to clipboard!`, "success");
+        } catch (e) {
+          prompt(`Share this link with ${kid.name}:`, url);
+        }
       } catch (e) {
-        prompt(`Copy this link for ${kid.name}:`, url);
+        showToast("Could not generate link: " + e.message, "error");
       }
     }
 
