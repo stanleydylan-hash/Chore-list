@@ -3104,36 +3104,14 @@
         parentId: email
       };
 
+      // Encode all kid data directly in the URL — no server write needed
+      const d = btoa(encodeURIComponent(JSON.stringify(kidSession)));
+      const url = `${location.origin}${location.pathname}?kid=${kid.token}&d=${d}`;
       try {
-        // Use upsert — creates the object if it doesn't exist yet
-        const res = await fetch(`${API_BASE}/my_owned_apps/${APP_NAME}/objects/upsert`, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          credentials: "include",
-          body: formBody({
-            collection_name: "kid-sessions",
-            userId: email + "-" + kid.token,
-            obj: JSON.stringify(kidSession)
-          })
-        });
-
-        if (!res.ok) {
-          const errBody = await res.json().catch(() => ({}));
-          console.error("generate link error", res.status, errBody);
-          showToast(`Could not generate link (${res.status}). Please try again.`, "error");
-          return;
-        }
-
-        // Encode parent email in URL so kid's device can look up the session
-        const url = `${location.origin}${location.pathname}?kid=${kid.token}&p=${btoa(email)}`;
-        try {
-          await navigator.clipboard.writeText(url);
-          showToast(`🔗 Link for ${kid.name} copied to clipboard!`, "success");
-        } catch (e) {
-          prompt(`Copy this link for ${kid.name}:`, url);
-        }
+        await navigator.clipboard.writeText(url);
+        showToast(`🔗 Link for ${kid.name} copied to clipboard!`, "success");
       } catch (e) {
-        showToast("Network error generating link.", "error");
+        prompt(`Copy this link for ${kid.name}:`, url);
       }
     }
 
@@ -3183,24 +3161,26 @@
       document.body.style.background = "linear-gradient(135deg, #fff9ed 0%, #ffe8cc 100%)";
 
       try {
-        // Support new format (?kid=TOKEN&p=btoa(email)) and legacy (?kid=TOKEN)
         const urlParams = new URLSearchParams(location.search);
-        const encodedParent = urlParams.get("p");
-        const collection = "kid-sessions";
-        const userId = encodedParent ? atob(encodedParent) + "-" + token : token;
+        const encoded = urlParams.get("d");
 
-        const res = await fetch(`${API_BASE}/fetch_object`, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: formBody({ app_name: APP_NAME, collection_name: collection, userId: userId })
-        });
-
-        if (!res.ok) { showKidStandaloneError(); return; }
-        const data = await res.json();
-        const kidData = typeof data.obj === "string" ? JSON.parse(data.obj) : data.obj;
-        if (!kidData) { showKidStandaloneError(); return; }
-
-        renderKidStandaloneView(kidData, token);
+        if (encoded) {
+          // New format: kid data encoded directly in URL — no API needed
+          const kidData = JSON.parse(decodeURIComponent(atob(encoded)));
+          renderKidStandaloneView(kidData, token);
+        } else {
+          // Legacy format: fetch from API
+          const res = await fetch(`${API_BASE}/fetch_object`, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: formBody({ app_name: APP_NAME, collection_name: "kid-sessions", userId: token })
+          });
+          if (!res.ok) { showKidStandaloneError(); return; }
+          const data = await res.json();
+          const kidData = typeof data.obj === "string" ? JSON.parse(data.obj) : data.obj;
+          if (!kidData) { showKidStandaloneError(); return; }
+          renderKidStandaloneView(kidData, token);
+        }
       } catch (e) {
         showKidStandaloneError();
       }
