@@ -1335,6 +1335,86 @@
       color: #ccc;
     }
 
+    /* ===== XP Bar ===== */
+    .kid-xp-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0 6px;
+    }
+    .kid-xp-badge {
+      background: linear-gradient(135deg, #7c3aed, #5b21b6);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 900;
+      padding: 4px 8px;
+      border-radius: 8px;
+      white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(124,58,237,0.35);
+      min-width: 52px;
+      text-align: center;
+      letter-spacing: 0.03em;
+    }
+    .kid-xp-bar-outer {
+      flex: 1;
+      background: #e9ecef;
+      border-radius: 10px;
+      height: 14px;
+      overflow: hidden;
+      position: relative;
+    }
+    .kid-xp-bar-fill {
+      height: 100%;
+      border-radius: 10px;
+      background: linear-gradient(90deg, #7c3aed, #a855f7);
+      transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+      position: relative;
+      overflow: hidden;
+    }
+    .kid-xp-bar-fill::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -60%;
+      width: 40%; height: 100%;
+      background: rgba(255,255,255,0.35);
+      transform: skewX(-20deg);
+      animation: xpShimmer 2.2s infinite;
+    }
+    @keyframes xpShimmer {
+      0%   { left: -60%; }
+      100% { left: 130%; }
+    }
+    .kid-xp-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #888;
+      white-space: nowrap;
+    }
+    .kid-xp-levelup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%) scale(0.5);
+      background: linear-gradient(135deg,#7c3aed,#a855f7);
+      color: #fff;
+      font-size: 1.5rem;
+      font-weight: 900;
+      padding: 22px 36px;
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(124,58,237,0.55);
+      z-index: 100000;
+      opacity: 0;
+      pointer-events: none;
+      text-align: center;
+      animation: xpLevelUp 1.8s ease forwards;
+    }
+    @keyframes xpLevelUp {
+      0%   { transform: translate(-50%,-50%) scale(0.5); opacity:0; }
+      25%  { transform: translate(-50%,-50%) scale(1.1); opacity:1; }
+      70%  { transform: translate(-50%,-50%) scale(1.05); opacity:1; }
+      100% { transform: translate(-50%,-50%) scale(1); opacity:0; }
+    }
+
     /* ===== Photo Verify Feature ===== */
     .pv-complete-btn {
       background: linear-gradient(135deg, #51cf66, #40c057);
@@ -1671,6 +1751,13 @@
           <div class="kid-standalone-date" id="kidSADate"></div>
         </div>
         <span class="kid-standalone-sync" id="kidSASync">💾 Local</span>
+      </div>
+      <div class="kid-xp-wrap">
+        <div class="kid-xp-badge" id="kidSAXPBadge">Lv 1</div>
+        <div class="kid-xp-bar-outer">
+          <div class="kid-xp-bar-fill" id="kidSAXPFill" style="width:0%"></div>
+        </div>
+        <span class="kid-xp-label" id="kidSAXPLabel">0 XP</span>
       </div>
       <div class="kid-standalone-progress-wrap">
         <div class="kid-standalone-bar-wrap">
@@ -3281,7 +3368,79 @@
       renderKidSAChores(token, todayChores, doneChores, saKey);
       updateKidSAProgress(todayChores, doneChores);
       renderKidSAWeekSchedule(assignments, schedule, today);
+      renderKidXPBar(token);
     }
+
+    // ---- XP system ----
+    // XP thresholds per level (cumulative total XP to reach that level)
+    const XP_PER_CHORE = 25;
+    const XP_LEVELS = [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200, 4000];
+    const LEVEL_NAMES = ["Rookie","Helper","Rising Star","Super Kid","Chore Hero","Legend","Champion","Master","Superstar","Elite","Unstoppable"];
+
+    function getKidXP(token) {
+      return parseInt(localStorage.getItem(`xp_${token}`) || "0", 10);
+    }
+
+    function setKidXP(token, xp) {
+      localStorage.setItem(`xp_${token}`, xp);
+    }
+
+    function xpToLevel(xp) {
+      let level = 1;
+      for (let i = 1; i < XP_LEVELS.length; i++) {
+        if (xp >= XP_LEVELS[i]) level = i + 1;
+        else break;
+      }
+      return Math.min(level, XP_LEVELS.length);
+    }
+
+    function xpProgressInLevel(xp) {
+      const level = xpToLevel(xp);
+      const idx = level - 1;
+      const base = XP_LEVELS[idx] || 0;
+      const next = XP_LEVELS[idx + 1];
+      if (!next) return 100; // max level
+      return Math.round(((xp - base) / (next - base)) * 100);
+    }
+
+    function addKidXP(token, amount) {
+      const oldXP = getKidXP(token);
+      const oldLevel = xpToLevel(oldXP);
+      const newXP = oldXP + amount;
+      const newLevel = xpToLevel(newXP);
+      setKidXP(token, newXP);
+      renderKidXPBar(token);
+      if (newLevel > oldLevel) showLevelUpBanner(newLevel);
+    }
+
+    function renderKidXPBar(token) {
+      const xp = getKidXP(token);
+      const level = xpToLevel(xp);
+      const pct = xpProgressInLevel(xp);
+      const idx = level - 1;
+      const base = XP_LEVELS[idx] || 0;
+      const next = XP_LEVELS[idx + 1];
+      const name = LEVEL_NAMES[idx] || "Legend";
+
+      const badge = document.getElementById("kidSAXPBadge");
+      const fill  = document.getElementById("kidSAXPFill");
+      const label = document.getElementById("kidSAXPLabel");
+      if (!badge) return;
+
+      badge.textContent = `Lv ${level}`;
+      badge.title = name;
+      fill.style.width = pct + "%";
+      label.textContent = next ? `${xp - base}/${next - base} XP` : `${xp} XP ★`;
+    }
+
+    function showLevelUpBanner(level) {
+      const el = document.createElement("div");
+      el.className = "kid-xp-levelup";
+      el.innerHTML = `🎉 Level Up!<br><span style="font-size:1.1rem">${LEVEL_NAMES[level-1] || "Legend"}</span>`;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2000);
+    }
+    // ---- end XP system ----
 
     function renderKidSAWeekSchedule(assignments, schedule, today) {
       const container = document.getElementById("kidSAWeekSchedule");
@@ -3347,13 +3506,15 @@
     function toggleKidSACompletion(token, choreName, todayChores, saKey) {
       let doneChores = JSON.parse(sessionStorage.getItem(saKey) || "[]");
       const idx = doneChores.indexOf(choreName);
-      if (idx === -1) doneChores.push(choreName);
+      const gaining = idx === -1;
+      if (gaining) doneChores.push(choreName);
       else doneChores.splice(idx, 1);
       sessionStorage.setItem(saKey, JSON.stringify(doneChores));
 
       renderKidSAChores(token, todayChores, doneChores, saKey);
       updateKidSAProgress(todayChores, doneChores);
       pushKidCompletionsToCloud(token, doneChores);
+      if (gaining) addKidXP(token, XP_PER_CHORE);
     }
 
     function updateKidSAProgress(todayChores, doneChores) {
@@ -3562,11 +3723,13 @@
         scheduleCompletionsSync();
       } else if (context === 'standalone') {
         let doneChores = JSON.parse(sessionStorage.getItem(saKey) || '[]');
-        if (!doneChores.includes(choreName)) doneChores.push(choreName);
+        const isNew = !doneChores.includes(choreName);
+        if (isNew) doneChores.push(choreName);
         sessionStorage.setItem(saKey, JSON.stringify(doneChores));
         renderKidSAChores(token, todayChores, doneChores, saKey);
         updateKidSAProgress(todayChores, doneChores);
         pushKidCompletionsToCloud(token, doneChores);
+        if (isNew) addKidXP(token, XP_PER_CHORE);
       }
 
       launchConfetti();
