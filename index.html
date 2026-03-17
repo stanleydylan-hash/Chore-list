@@ -1265,6 +1265,76 @@
     .kid-standalone-error .err-icon { font-size: 3rem; margin-bottom: 12px; }
     .kid-standalone-error p { color: #666; font-size: 1rem; }
 
+    /* ===== Kid Weekly Schedule ===== */
+    .kid-week-schedule {
+      margin: 20px 0 8px;
+    }
+    .kid-week-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #aaa;
+      margin-bottom: 10px;
+    }
+    .kid-week-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+    .kid-week-day {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 6px 4px 8px;
+      text-align: center;
+      min-height: 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      border: 2px solid transparent;
+      transition: border-color 0.2s;
+    }
+    .kid-week-day.today {
+      background: #fff8e6;
+      border-color: #ffb200;
+    }
+    .kid-week-day-label {
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #888;
+    }
+    .kid-week-day.today .kid-week-day-label {
+      color: #e67700;
+    }
+    .kid-week-day-chores {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      width: 100%;
+    }
+    .kid-week-chore-dot {
+      font-size: 0.6rem;
+      background: #e9ecef;
+      border-radius: 4px;
+      padding: 2px 3px;
+      color: #555;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: left;
+      line-height: 1.3;
+    }
+    .kid-week-day.today .kid-week-chore-dot {
+      background: #ffd43b;
+      color: #7c5a00;
+    }
+    .kid-week-free {
+      font-size: 0.6rem;
+      color: #ccc;
+    }
+
     /* ===== Photo Verify Feature ===== */
     .pv-complete-btn {
       background: linear-gradient(135deg, #51cf66, #40c057);
@@ -1609,6 +1679,7 @@
         <span class="kid-standalone-progress-label" id="kidSAProgressLabel">0 of 0 done</span>
       </div>
       <div id="kidSAChores"></div>
+      <div id="kidSAWeekSchedule"></div>
       <div class="kid-mode-all-done" id="kidSAAllDone" style="display:none;">
         <span class="all-done-icon">🎉</span>
         <div class="all-done-text">Amazing job!</div>
@@ -3209,6 +3280,37 @@
 
       renderKidSAChores(token, todayChores, doneChores, saKey);
       updateKidSAProgress(todayChores, doneChores);
+      renderKidSAWeekSchedule(assignments, schedule, today);
+    }
+
+    function renderKidSAWeekSchedule(assignments, schedule, today) {
+      const container = document.getElementById("kidSAWeekSchedule");
+      const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      const dayLabels = ["M", "T", "W", "T", "F", "S", "S"];
+
+      let html = `<div class="kid-week-schedule">
+        <div class="kid-week-title">📅 Weekly Schedule</div>
+        <div class="kid-week-days">`;
+
+      days.forEach((day, i) => {
+        const isToday = day === today;
+        const dayChores = assignments.filter(c => (schedule[c] || []).includes(day));
+        html += `<div class="kid-week-day${isToday ? " today" : ""}">
+          <div class="kid-week-day-label">${dayLabels[i]}</div>
+          <div class="kid-week-day-chores">`;
+        if (dayChores.length === 0) {
+          html += `<span class="kid-week-free">✨</span>`;
+        } else {
+          dayChores.forEach(c => {
+            const short = c.length > 8 ? c.slice(0, 7) + "…" : c;
+            html += `<div class="kid-week-chore-dot" title="${c}">${short}</div>`;
+          });
+        }
+        html += `</div></div>`;
+      });
+
+      html += `</div></div>`;
+      container.innerHTML = html;
     }
 
     function renderKidSAChores(token, todayChores, doneChores, saKey) {
