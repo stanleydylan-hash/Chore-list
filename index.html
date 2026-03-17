@@ -3105,13 +3105,15 @@
       };
 
       try {
+        // Store under parent's email — userId must match the authenticated account
         const res = await fetch(`${API_BASE}/update_object`, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          credentials: "include",
           body: formBody({
             app_name: APP_NAME,
-            collection_name: "kid-sessions",
-            userId: kid.token,
+            collection_name: "kid-" + kid.token,
+            userId: email,
             obj: JSON.stringify(kidSession)
           })
         });
@@ -3123,7 +3125,8 @@
           return;
         }
 
-        const url = `${location.origin}${location.pathname}?kid=${kid.token}`;
+        // Encode parent email in URL so kid's device can fetch the session
+        const url = `${location.origin}${location.pathname}?kid=${kid.token}&p=${btoa(email)}`;
         try {
           await navigator.clipboard.writeText(url);
           showToast(`🔗 Link for ${kid.name} copied to clipboard!`, "success");
@@ -3181,10 +3184,16 @@
       document.body.style.background = "linear-gradient(135deg, #fff9ed 0%, #ffe8cc 100%)";
 
       try {
+        // Support both new format (?kid=TOKEN&p=EMAIL) and legacy (?kid=TOKEN)
+        const urlParams = new URLSearchParams(location.search);
+        const encodedParent = urlParams.get("p");
+        const collection = encodedParent ? "kid-" + token : "kid-sessions";
+        const userId = encodedParent ? atob(encodedParent) : token;
+
         const res = await fetch(`${API_BASE}/fetch_object`, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: formBody({ app_name: APP_NAME, collection_name: "kid-sessions", userId: token })
+          body: formBody({ app_name: APP_NAME, collection_name: collection, userId: userId })
         });
 
         if (!res.ok) { showKidStandaloneError(); return; }
